@@ -14,6 +14,7 @@ import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
+//import edu.wpi.first.cameraserver.CameraServer;
 //import edu.wpi.first.wpilibj.PowerDistribution;
 //import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -41,6 +42,7 @@ public class Robot extends LoggedRobot {
   public void robotInit() {
 
     //ctreConfigs = new CTREConfigs();
+    //CameraServer.startAutomaticCapture(1);
 
     // Record metadata
     Logger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);
@@ -65,6 +67,7 @@ public class Robot extends LoggedRobot {
       case REAL:
         // Running on a real robot, log to a USB stick
         Logger.addDataReceiver(new WPILOGWriter("/U"));
+        Logger.addDataReceiver(new WPILOGWriter("C:/Users/ynots/Documents/WPILogs2024"));
         Logger.addDataReceiver(new NT4Publisher());
         break;
 

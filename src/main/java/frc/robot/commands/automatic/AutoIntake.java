@@ -1,24 +1,35 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot.commands.automatic;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.subsystems.ScoringSubsystem;
+import edu.wpi.first.wpilibj.Timer;
 
-public class AutoBalance extends Command {
+public class AutoIntake extends Command {
+  private ScoringSubsystem subsystem;
+  private Timer time = new Timer();
+
   /** Creates a new AutoBalance. */
-  public AutoBalance() {
+  public AutoIntake(ScoringSubsystem subsystem) {
     // Use addRequirements() here to declare subsystem dependencies.
+    addRequirements(subsystem);
+    this.subsystem = subsystem;
   }
 
   // Called when the command is initially scheduled.
   @Override
-  public void initialize() {}
+  public void initialize() {
+    time.start();
+  }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
-  public void execute() {}
+  public void execute() {
+    if (time.get() <= 1) {
+      subsystem.intake(1);
+    }
+    time.reset();
+    time.stop();
+  }
 
   // Called once the command ends or is interrupted.
   @Override

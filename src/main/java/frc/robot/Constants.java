@@ -8,6 +8,11 @@
 package frc.robot;
 
 import frc.lib.SwerveModuleConstants;
+
+import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+import com.pathplanner.lib.util.PIDConstants;
+import com.pathplanner.lib.util.ReplanningConfig;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -22,6 +27,13 @@ import edu.wpi.first.math.util.Units;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
+  public static final int rightArmMotorID = 10;
+  public static final int leftArmMotorID = 11;
+
+  public static final int topShooterMotorID = 12;
+  public static final int bottomShooterMotorID = 13;
+
+  public static final int intakeMotorID = 14;
 
     public static final Mode currentMode = Mode.REAL;
 
@@ -139,4 +151,13 @@ public final class Constants {
     public static final double driveKS = 0.1;
     public static final double driveKV = 2.3;
     public static final double driveKA = 0.3;
+
+    public static final Translation2d MODULE_OFFSET = new Translation2d(CENTER_TO_WHEEL_X, CENTER_TO_WHEEL_Y);
+
+    public static final HolonomicPathFollowerConfig pathFollowerConfig = new HolonomicPathFollowerConfig(
+      new PIDConstants(10.0, 0, 0), // Translation constants 
+      new PIDConstants(10.0, 0, 0), // Rotation constants 
+      4.0, 
+      MODULE_OFFSET.getNorm(), // Drive base radius (distance from center to furthest module) 
+      new ReplanningConfig());
 }

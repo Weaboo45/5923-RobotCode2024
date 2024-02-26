@@ -17,6 +17,10 @@ import java.util.Map;
 //import java.util.Optional;
 
 import com.kauailabs.navx.frc.AHRS;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.path.PathPlannerPath;
 
 /*
 import com.pathplanner.lib.PathPlanner;
@@ -40,12 +44,10 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-//import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 
-import frc.robot.commands.autonomous.SimpleAutonomous;
-import frc.robot.commands.manual.DriveJoystickSwerve;
-import frc.robot.commands.manual.DriveSwerve;
-
+import frc.robot.commands.manual.JoyStickCommands.*;
+import frc.robot.commands.manual.ControllerCommands.*;
+import frc.robot.commands.automatic.*;
 import frc.robot.subsystems.*;
 
 /**
@@ -59,64 +61,61 @@ public class RobotContainer {
   /*
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
-  
+  private final SendableChooser<Command> m_chooser;
+
   public RobotContainer() {
+    m_chooser = AutoBuilder.buildAutoChooser();
+
     configureInitialDefaultCommands();
-    configureButtonBindings();
+    configureBindings();
     configureShuffleboardData();
     configureSmartDashboard();
+
+    NamedCommands.registerCommand("Intake", intakeComand);
+    NamedCommands.registerCommand("Shoot", shootComand);
+
+    SmartDashboard.putData("Auto Mode", m_chooser);
   }
 
   // The robot's subsystems and commands are defined here...
   /// SHUFFLEBOARD TAB ///
   private final ShuffleboardTab m_tab = Shuffleboard.getTab("Competition Robot");
-  private final SendableChooser<Command> m_chooser = new SendableChooser<Command>();
-  
-  /* 
-  private final SendableChooser<Optional<PathPlannerTrajectory>> autoChooser = new SendableChooser<>();
-  private final SwerveAutoBuilder autoBuilder = new SwerveAutoBuilder(
-    drivetrain::getPose,
-    drivetrain::resetOdometry,
-      Constants.DRIVE_KIN, // SwerveDriveKinematics
-      new PIDConstants(1, 0, 0),
-      new PIDConstants(.8, 0, 0),
-            drivetrain::setModuleStates,
-      eventMap,
-      true,
-      drivetrain);
-
-  private static Map<String, Command> eventMap = new HashMap<>();
-
-
-  PathPlannerTrajectory DoNothing = PathPlanner.loadPath("DoNothing",0,0);
-*/
 
   /// SUBSYSTEMS ///
   public static final SwerveDrivetrain drivetrain = new SwerveDrivetrain();
+  public static final ScoringSubsystem scoreSub = new ScoringSubsystem();
 
   /// OI DEVICES / HARDWARE ///
-  private final XboxController xbox = new XboxController(0);
-  private final PS4Controller ps4 = new PS4Controller(1);
+  //private final XboxController xbox = new XboxController(0);
+  private final PS4Controller ps4 = new PS4Controller(0);
   private final Joystick stick = new Joystick(1);
   private static final AHRS ahrs = new AHRS(Port.kMXP);
 
 
   /// COMMANDS ///
-  // Autonomous
-  private final SimpleAutonomous simpleAuto = new SimpleAutonomous(drivetrain, ahrs);
+  // Auto Commands
+  //private final SimpleAutonomous simpleAuto = new SimpleAutonomous(drivetrain, ahrs);
+  private final AutoIntake intakeComand = new AutoIntake(scoreSub);
+  private final AutoShoot shootComand = new AutoShoot(scoreSub);
 
   // Xbox controls
-  private final DriveSwerve drivetrainXbox = new DriveSwerve(drivetrain, () -> -xbox.getLeftY(), ()-> xbox.getLeftX(), ()-> -xbox.getRightX(),
-   () -> xbox.getRightBumper(), ()-> xbox.getLeftBumper(), ()-> xbox.getAButton()); //RB toggles field orintation || LB toggles speed || A button resets heading
+  //private final DriveSwerve drivetrainXbox = new DriveSwerve(drivetrain, () -> -xbox.getLeftY(), ()-> xbox.getLeftX(), ()-> -xbox.getRightX(),
+  // () -> xbox.getRightBumper(), ()-> xbox.getLeftBumper(), ()-> xbox.getAButton()); //RB toggles field orintation || LB toggles speed || A button resets heading
 
   // Playstation Controls
   private final DriveSwerve drivePlaystation = new DriveSwerve(drivetrain, () -> -ps4.getLeftY(), () -> ps4.getLeftX(),() -> -ps4.getRightX(),
-   () -> ps4.getR1Button(), () -> ps4.getL1Button(), () -> ps4.getCrossButton()); //R1 toggles field orintation || L1 toggles speed || X button resets heading
+   () -> ps4.getR1Button(), () -> ps4.getL1Button()); //R1 toggles field orintation || L1 toggles speed || X button resets heading
 
   // Joystick Controls
   private final DriveJoystickSwerve driveJoystick = new DriveJoystickSwerve(drivetrain, () -> stick.getY(), () -> stick.getX(), () -> stick.getTwist(),
    () -> stick.getRawButton(7), () -> stick.getRawButton(8), () -> stick.getThrottle());
   
+  // Arm Command
+  private final ArmCommand ps4Arm = new ArmCommand(scoreSub, () -> ps4.getR2Axis(), () -> ps4.getL2Axis(),
+  () -> ps4.getSquareButton(), () -> ps4.getTriangleButton(), () -> ps4.getCrossButton());
+
+  private final JoystickArmCommand joystickArm = new JoystickArmCommand(scoreSub, () -> stick.getRawButton(6), () -> stick.getRawButton(4), () -> stick.getRawButton(2),
+  () -> stick.getRawButton(3),  () -> stick.getTrigger());
   /// SHUFFLEBOARD METHODS ///
   /**
    * Use this command to define {@link Shuffleboard} buttons using a
@@ -125,9 +124,6 @@ public class RobotContainer {
    */
   private void configureShuffleboardData() {
     Shuffleboard.selectTab(m_tab.getTitle());
-    
-    m_chooser.setDefaultOption("Basic Autonomous Sequence", simpleAuto);
-    //m_chooser.addOption("Automatic autonomous", pidAuto);
 
     ShuffleboardLayout encoders = m_tab.getLayout("Encoders", BuiltInLayouts.kGrid);
     encoders.add("Encoder Reset", new InstantCommand(()-> drivetrain.resetToAbsolute()));
@@ -136,14 +132,20 @@ public class RobotContainer {
     .withPosition(0, 0).withSize(2, 2)
     .withProperties(Map.of("label position", "BOTTOM"));
 
-    drivingStyleLayout.add("Xbox Drive",
-    new InstantCommand(() -> drivetrain.setDefaultCommand(drivetrainXbox), drivetrain));
+    //drivingStyleLayout.add("Xbox Drive",
+    //new InstantCommand(() -> drivetrain.setDefaultCommand(drivetrainXbox), drivetrain));
 
-    drivingStyleLayout.add("PS4 Drive",
+    drivingStyleLayout.add("PS5 Drive",
     new InstantCommand(() -> drivetrain.setDefaultCommand(drivePlaystation), drivetrain));
+
+    drivingStyleLayout.add("PS5 Arm Controll",
+    new InstantCommand(() -> scoreSub.setDefaultCommand(ps4Arm), scoreSub));
 
     drivingStyleLayout.add("Joystick Drive",
     new InstantCommand(() -> drivetrain.setDefaultCommand(driveJoystick), drivetrain));
+
+    drivingStyleLayout.add("Joystick Arm Controll",
+    new InstantCommand(() -> scoreSub.setDefaultCommand(joystickArm), scoreSub));
 
  
     ShuffleboardLayout gyroSensor = m_tab.getLayout("NavX", BuiltInLayouts.kGrid)
@@ -158,28 +160,34 @@ public class RobotContainer {
     ShuffleboardLayout controllerLayout = m_tab.getLayout("Controller Vals", BuiltInLayouts.kGrid)
     .withPosition(4, 0).withSize(2, 6)
     .withProperties(Map.of("label position", "BOTTOM"));
-    controllerLayout.addNumber("left y", () -> -xbox.getLeftY())
+    controllerLayout.addNumber("left y", () -> -ps4.getLeftY())
     .withPosition(0, 0).withSize(2, 1).withWidget(BuiltInWidgets.kNumberBar);
-    controllerLayout.addNumber("left x", () -> xbox.getLeftX())
+    controllerLayout.addNumber("left x", () -> ps4.getLeftX())
     .withPosition(0, 1).withSize(2, 1).withWidget(BuiltInWidgets.kNumberBar);
-    controllerLayout.addNumber("left trigger", () -> xbox.getLeftTriggerAxis())
+    controllerLayout.addNumber("left trigger", () -> ps4.getL2Axis())
     .withPosition(0, 2).withSize(2, 1).withWidget(BuiltInWidgets.kNumberBar);
-    controllerLayout.addNumber("right y", () -> -xbox.getRightY())
+    controllerLayout.addNumber("right y", () -> -ps4.getRightY())
     .withPosition(2, 0).withSize(2, 1).withWidget(BuiltInWidgets.kNumberBar);
-    controllerLayout.addNumber("right x", () -> xbox.getRightX())
+    controllerLayout.addNumber("right x", () -> ps4.getRightX())
     .withPosition(2, 1).withSize(2, 1).withWidget(BuiltInWidgets.kNumberBar);
-    controllerLayout.addNumber("right trigger", () -> xbox.getRightTriggerAxis())
+    controllerLayout.addNumber("right trigger", () -> ps4.getR2Axis())
     .withPosition(2, 2).withSize(2, 1).withWidget(BuiltInWidgets.kNumberBar);
 
-    m_tab.add("Auto Chooser", m_chooser)
-    .withPosition(0, 6).withSize(5, 2)
-    .withWidget(BuiltInWidgets.kSplitButtonChooser);   
+    //ShuffleboardLayout autonChooser = m_tab.getLayout("Autons", BuiltInLayouts.kList)
+    //.withPosition(0, 3).withSize(2, 3).withProperties(Map.of("lable position", "BOTTOM"));
+    //autonChooser.add("Auto Chooser", m_chooser);
+
+    //m_chooser.setDefaultOption("Path Test", new PathPlannerAuto("Test Auto"));
+    //m_chooser.addOption("Automatic autonomous", pidAuto);
   }
 
   private void configureSmartDashboard(){
-    //autoChooser.addOption("test", Optional.empty());
-
-    //SmartDashboard.putData(autoChooser);
+    m_chooser.setDefaultOption("Scoring Sub Check", new PathPlannerAuto("Intake&Shoot"));
+    
+    m_chooser.addOption("Square", new PathPlannerAuto("SquareAuto"));
+    m_chooser.addOption("Test Auto", new PathPlannerAuto("Test Auto"));
+    m_chooser.addOption("Intake and shooter test", new PathPlannerAuto("Intake&Shoot"));
+    SmartDashboard.putData(m_chooser);
   }
 
   /**   
@@ -187,7 +195,9 @@ public class RobotContainer {
    * Default commands are ran whenever no other commands are using a specific subsystem.
    */
   private void configureInitialDefaultCommands() {
-    drivetrain.setDefaultCommand(driveJoystick);
+    drivetrain.setDefaultCommand(drivePlaystation);
+    scoreSub.setDefaultCommand(joystickArm);
+
   }
   /**
    * Use this method to define your button->command mappings.  Buttons can be created by
@@ -195,7 +205,9 @@ public class RobotContainer {
    * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then passing it to a
    * {@link edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
-  private void configureButtonBindings() {
+  private void configureBindings() {
+    SmartDashboard.putData("Auto", new PathPlannerAuto("Test Auto"));
+    SmartDashboard.putData("Auto", new PathPlannerAuto("SquareAuto"));
   }
   
   /**
@@ -203,23 +215,20 @@ public class RobotContainer {
    *
    * @return the command to run in autonomous
    */
-   /*
   public Command getAutonomousCommand() {
     // Executes the autonomous command chosen in smart dashboard
-    Optional<PathPlannerTrajectory> choice = autoChooser.getSelected();
-    if (choice.isEmpty()) {
-        return null;
-    }
-    return new ParallelCommandGroup(
-            new InstantCommand(
-                    () -> drivetrain.getField().getObject("Field").setTrajectory(
-                        choice.get())),
-            autoBuilder.fullAuto(choice.get()));
+
+    // Load the path you want to follow using its name in the GUI
+        //PathPlannerPath path = PathPlannerPath.fromPathFile("Test Path");
+
+        // Create a path following command using AutoBuilder. This will also trigger event markers.
+        //return AutoBuilder.followPath(path);
+    return m_chooser.getSelected();
   }
-  */
   
 
   public void displayValues() {
   SmartDashboard.putData(drivetrain);
+  SmartDashboard.putData(m_chooser);
   }
 }

@@ -1,10 +1,14 @@
 package frc.robot.subsystems;
 
 import frc.robot.Constants;
+import frc.robot.subsystems.SwerveModules;
 
 import java.text.DecimalFormat;
 
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.util.PathPlannerLogging;
 
 import com.kauailabs.navx.frc.AHRS;
 
@@ -14,9 +18,11 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.Kinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -46,6 +52,32 @@ public class SwerveDrivetrain extends SubsystemBase {
       new SwerveModules(3, Constants.Mod3.constants)
   };
 
+    // Configure AutoBuilder
+    //AutoBuilder.configureCustom(null, this::getPose, this::resetOdometry);
+    AutoBuilder.configureHolonomic(
+      this::getPose, 
+      this::resetOdometry, 
+      ()-> Constants.DRIVE_KIN.toChassisSpeeds(getModuleStates()), 
+      this::driveRobotRelative, 
+      Constants.pathFollowerConfig,
+      () -> {
+          // Boolean supplier that controls when the path will be mirrored for the red alliance
+          // This will flip the path being followed to the red side of the field.
+          // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+
+          var alliance = DriverStation.getAlliance();
+          if (alliance.isPresent()) {
+              return alliance.get() == DriverStation.Alliance.Red;
+          }
+          return false;
+      },
+      this);
+
+     // Set up custom logging to add the current path to a field 2d widget
+     //PathPlannerLogging.setLogActivePathCallback((poses) -> field.getObject("path").setPoses(poses));
+
+     //SmartDashboard.putData("Field", field);
+
 
   poseEstimator = new SwerveDrivePoseEstimator(Constants.DRIVE_KIN, getYaw(), getPositions(),
         new Pose2d());
@@ -62,6 +94,7 @@ public class SwerveDrivetrain extends SubsystemBase {
     SmartDashboard.putData(field);
   }
 
+  @AutoLogOutput
   public void swerveDrive(
       Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop){ //Drive with rotational speed control w/ joystick  
     SwerveModuleState[] swerveModuleStates = Constants.DRIVE_KIN.toSwerveModuleStates(
@@ -87,6 +120,14 @@ public class SwerveDrivetrain extends SubsystemBase {
     return field;
   }
 
+  public void driveRobotRelative(ChassisSpeeds robotRelativeSpeeds) {
+    ChassisSpeeds targetSpeeds = ChassisSpeeds.discretize(robotRelativeSpeeds, 0.02);
+
+    SwerveModuleState[] targetStates = Constants.DRIVE_KIN.toSwerveModuleStates(targetSpeeds);
+    setModuleStates(targetStates);
+  }
+
+  @AutoLogOutput
   public void setModuleStates(SwerveModuleState[] moduleStates){
     SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, Constants.DRIVETRAIN_MAX_SPEED);
 
@@ -95,6 +136,7 @@ public class SwerveDrivetrain extends SubsystemBase {
     }
   }
 
+  @AutoLogOutput
   public void setModuleRotation(Rotation2d rotation) {
     for (SwerveModules mod : swerveModules) {
       mod.setDesiredState(new SwerveModuleState(0, rotation), false);

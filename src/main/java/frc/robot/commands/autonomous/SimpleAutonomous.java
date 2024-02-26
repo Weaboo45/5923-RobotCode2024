@@ -6,22 +6,17 @@ package frc.robot.commands.autonomous;
 
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.SwerveDrivetrain;
+import frc.robot.subsystems.ScoringSubsystem;
 
-import static frc.robot.Constants.*;
-
-import com.kauailabs.navx.frc.AHRS;
 
 public class SimpleAutonomous extends Command {
-  private SwerveDrivetrain drivetrain;
-  private AHRS ahrs;
+  private ScoringSubsystem subsystem;
   private Timer timer = new Timer();
 
   /** Creates a new SimpleAutonomous. */
-  public SimpleAutonomous(SwerveDrivetrain drivetrain, AHRS gyroscope) {
-    addRequirements(drivetrain);
-    this.drivetrain = drivetrain;
-    this.ahrs = gyroscope;
+  public SimpleAutonomous(ScoringSubsystem subsystem) {
+    addRequirements(subsystem);
+    this.subsystem = subsystem;
   }
 
   // Called when the command is initially scheduled.
@@ -41,7 +36,6 @@ public class SimpleAutonomous extends Command {
   public void end(boolean interrupted) {}
 
   private void timedAutoSequence() {
-
   }
 
 

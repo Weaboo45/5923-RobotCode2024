@@ -85,6 +85,8 @@ public class SwerveModules extends SubsystemBase {
 
     SmartDashboard.putString("Swerve [" + driveMotor.getDeviceId() + "] State", getState().toString());
     Logger.recordOutput("Drivetrain/Module " + driveMotor.getDeviceId() + " State", getState());
+
+    //Logger.recordOutput("Drivetrain/Module Desired States", desiredState);
   }
 
   public void setSpeed(SwerveModuleState desiredState, boolean isOpenLoop){
@@ -177,4 +179,6 @@ public class SwerveModules extends SubsystemBase {
     double velocity = driveEncoder.getVelocity();
     return new SwerveModuleState(velocity, getAngle());  
   }
+
+  
 }

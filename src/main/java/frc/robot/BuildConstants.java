@@ -5,7 +5,7 @@ package frc.robot;
  */
 public final class BuildConstants {
   public static final String MAVEN_GROUP = "";
-  public static final String MAVEN_NAME = "5923_SwerveDrive_PostSeason";
+  public static final String MAVEN_NAME = "5923-RobotCode2024";
   public static final String VERSION = "unspecified";
   public static final int GIT_REVISION = 6;
   public static final String GIT_SHA = "4b2acd0166e56fbb19f765fddcb5dd6c8d9239e5";

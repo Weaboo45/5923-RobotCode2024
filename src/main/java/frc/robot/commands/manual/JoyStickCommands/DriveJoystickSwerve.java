@@ -1,11 +1,4 @@
-/*----------------------------------------------------------------------------*/
-/* Copyright (c) 2019 FIRST. All Rights Reserved.                             */
-/* Open Source Software - may be modified and shared by FRC teams. The code   */
-/* must be accompanied by the FIRST BSD license file in the root directory of */
-/* the project.                                                               */
-/*----------------------------------------------------------------------------*/
-
-package frc.robot.commands.manual;
+package frc.robot.commands.manual.JoyStickCommands;
 
 import java.util.function.Supplier;
 
@@ -17,31 +10,30 @@ import frc.robot.Constants;
 import frc.robot.subsystems.SwerveDrivetrain;
 
 
-public class DriveSwerve extends Command {
+public class DriveJoystickSwerve extends Command {
   /*
    * Creates a new DriveMecanum.
    */
 
   private SwerveDrivetrain drivetrain;
-  private Supplier<Double>  y, x, z;
-  private Supplier<Boolean> fieldTOrientated, togglespeed, resetGyro;
+  private Supplier<Double>  y, x, z, multiplier;
+  private Supplier<Boolean> fieldTOrientated, zeroHeading;
   boolean fieldDrive = true, onOff = false;
-  double speed = 3.5;
 
   private SlewRateLimiter translationLimiter = new SlewRateLimiter(2.0);
   private SlewRateLimiter strafeLimiter = new SlewRateLimiter(2.0);
   private SlewRateLimiter rotationLimiter = new SlewRateLimiter(4.0);
 
 
-  public DriveSwerve(SwerveDrivetrain drivetrain, Supplier<Double> yDirect, Supplier<Double> xDirect, 
-  Supplier<Double> rotation, Supplier<Boolean> fieldTOrientated, Supplier<Boolean> togglespeed, Supplier<Boolean> resetGyro) {
+  public DriveJoystickSwerve(SwerveDrivetrain drivetrain, Supplier<Double> yDirect, Supplier<Double> xDirect, 
+  Supplier<Double> rotation, Supplier<Boolean> fieldTOrientated, Supplier<Boolean> zeroHeading, Supplier<Double> multiplier) {
     addRequirements(drivetrain);
     this.drivetrain = drivetrain;
-    this.togglespeed = togglespeed;
+    this.zeroHeading = zeroHeading;
     this.y = yDirect;
     this.x = xDirect;
     this.z = rotation;
-    this.resetGyro = resetGyro;
+    this.multiplier = multiplier;
     this.fieldTOrientated = fieldTOrientated; // toggle
   }
 
@@ -54,16 +46,15 @@ public class DriveSwerve extends Command {
   @Override
   public void execute() {
 
-    if(togglespeed.get()){
-      onOff = !onOff;
-    }
-    if(onOff){
-      speed = 4.0;
-    }
-
-    if(resetGyro.get()){
+    if(zeroHeading.get()){
       drivetrain.zeroHeading();
     }
+
+    double mult = -multiplier.get() * 2 + 3; //trying to make -1 to 1 turn to 1 to 4
+    if(mult > 4){
+      mult = 4;
+    }
+    
 
     /* Get Values, Deadband */
     double translationVal = translationLimiter
@@ -77,14 +68,13 @@ public class DriveSwerve extends Command {
       fieldDrive = !fieldDrive;
     }
 
-    drivetrain.swerveDrive( new Translation2d(translationVal * speed, strafeVal * speed),
-      rotationVal * 4, fieldDrive, false);
+    drivetrain.swerveDrive( new Translation2d(-translationVal * mult, strafeVal * mult),
+      -rotationVal * 4, fieldDrive, false);
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {;
-    //drivetrain.stopModules();
   }
 
   // Returns true when the command should end.
