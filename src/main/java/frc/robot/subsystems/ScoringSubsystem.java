@@ -32,21 +32,17 @@ public class ScoringSubsystem extends SubsystemBase {
     //intake motor
     private CANSparkMax intakeMotor;
 
-    private SparkPIDController armController;
-    private Encoder amrThroughBoreEncoder;
+    private SparkPIDController rightArmController, leftArmController;
 
     public ScoringSubsystem() {
-
-        //absolute encoder
-        //amrThroughBoreEncoder = new AbsoluteEncoder();
     
         //arm motors
         leftArmMotor = new CANSparkMax(Constants.leftArmMotorID, MotorType.kBrushless);
         rightArmMotor = new CANSparkMax(Constants.rightArmMotorID, MotorType.kBrushless);
 
         //arm encoders
-        //leftArmEncoder = leftArmMotor.getEncoder();
-        //rightArmEncoder = rightArmMotor.getEncoder();
+        leftArmEncoder = leftArmMotor.getEncoder();
+        rightArmEncoder = rightArmMotor.getEncoder();
         
         //shooter motors
         topShooterMotor = new CANSparkMax(Constants.topShooterMotorID, MotorType.kBrushless);
@@ -54,14 +50,10 @@ public class ScoringSubsystem extends SubsystemBase {
         
         //intake motor
         intakeMotor = new CANSparkMax(Constants.intakeMotorID, MotorType.kBrushed);
-        //angleMotorID = new CANSparkmax(Constants.angleMotorID, MotorType.kBrushless)
-
-        //motor followers
-        //leftArmMotor.follow(rightArmMotor, false);
-        //bottomShooterMotor.follow(topShooterMotor, true);
 
         //PID controller
-        //armController = rightArmMotor.getPIDController();
+        rightArmController = rightArmMotor.getPIDController();
+        leftArmController = leftArmMotor.getPIDController();
 
         //motor configs
         configLeftArmMotor();
@@ -73,39 +65,47 @@ public class ScoringSubsystem extends SubsystemBase {
 
   private void configRightArmMotor() {
     rightArmMotor.restoreFactoryDefaults();
-    //CANSparkMaxUtil.setCANSparkMaxBusUsage(rightArmMotor, Usage.kPositionOnly);
-    rightArmMotor.setSmartCurrentLimit(40);
+    rightArmMotor.setSmartCurrentLimit(15);
     rightArmMotor.setIdleMode(IdleMode.kBrake);
-    //rightArmEncoder.setPositionConversionFactor(Constants.TURN_MOTOR_PCONVERSION);
-    /*
-    armController.setPositionPIDWrappingEnabled(true);
-    armController.setPositionPIDWrappingMinInput(-180.0);
-    armController.setPositionPIDWrappingMaxInput(180.0);
-    armController.setP(Constants.ROTATE_KP);
-    armController.setI(Constants.ROTATE_KI);
-    armController.setD(Constants.ROTATE_KD);
-    armController.setFF(0.0);
-    */
+    rightArmEncoder.setPositionConversionFactor(Constants.ARM_MOTOR_PCONVERSION);
+    rightArmEncoder.setVelocityConversionFactor(Constants.ARM_MOTOR_VCONVERSION);
+    
+    rightArmController.setPositionPIDWrappingEnabled(true);
+    rightArmController.setPositionPIDWrappingMinInput(-180.0);
+    rightArmController.setPositionPIDWrappingMaxInput(180.0);
+    rightArmController.setP(Constants.ROTATE_KP);
+    rightArmController.setI(Constants.ROTATE_KI);
+    rightArmController.setD(Constants.ROTATE_KD);
+    rightArmController.setFF(0.0);
+    
     rightArmMotor.enableVoltageCompensation(12);
     rightArmMotor.burnFlash();
-    //resetToAbsolute();
+    rightArmEncoder.setPosition(0);
   }
 
   private void configLeftArmMotor() {
     leftArmMotor.restoreFactoryDefaults();
-    //CANSparkMaxUtil.setCANSparkMaxBusUsage(leftArmMotor, Usage.kPositionOnly);
-    leftArmMotor.setSmartCurrentLimit(40);
+    leftArmMotor.setSmartCurrentLimit(15);
     leftArmMotor.setIdleMode(IdleMode.kBrake);
-    //leftArmEncoder.setVelocityConversionFactor(Constants.DRIVE_MOTOR_VCONVERSION);
-    //leftArmEncoder.setPositionConversionFactor(Constants.DRIVE_MOTOR_PCONVERSION);
+
+    leftArmEncoder.setVelocityConversionFactor(Constants.ARM_MOTOR_VCONVERSION);
+    leftArmEncoder.setPositionConversionFactor(Constants.ARM_MOTOR_PCONVERSION);
+
+    leftArmController.setPositionPIDWrappingEnabled(true);
+    leftArmController.setPositionPIDWrappingMinInput(-180.0);
+    leftArmController.setPositionPIDWrappingMaxInput(180.0);
+    leftArmController.setP(Constants.ROTATE_KP);
+    leftArmController.setI(Constants.ROTATE_KI);
+    leftArmController.setD(Constants.ROTATE_KD);
+    leftArmController.setFF(0.0);
+    
     leftArmMotor.enableVoltageCompensation(12);
     leftArmMotor.burnFlash();
-    //leftArmEncoder.setPosition(0.0);
+    leftArmEncoder.setPosition(0.0);
   }
 
   private void configTopShooterMotor() {
     topShooterMotor.restoreFactoryDefaults();
-    //CANSparkMaxUtil.setCANSparkMaxBusUsage(topShooterMotor, Usage.kVelocityOnly);
     topShooterMotor.setSmartCurrentLimit(30);
     topShooterMotor.setIdleMode(IdleMode.kCoast);
     topShooterMotor.enableVoltageCompensation(12);
@@ -114,7 +114,6 @@ public class ScoringSubsystem extends SubsystemBase {
 
   private void configBottorShooterMotor() {
     bottomShooterMotor.restoreFactoryDefaults();
-    //CANSparkMaxUtil.setCANSparkMaxBusUsage(bottomShooterMotor, Usage.kVelocityOnly);
     bottomShooterMotor.setSmartCurrentLimit(30);
     bottomShooterMotor.setIdleMode(IdleMode.kCoast);
     bottomShooterMotor.enableVoltageCompensation(12);
@@ -123,7 +122,6 @@ public class ScoringSubsystem extends SubsystemBase {
 
   private void configIntakeMotor() {
     intakeMotor.restoreFactoryDefaults();
-    //CANSparkMaxUtil.setCANSparkMaxBusUsage(intakeMotor, Usage.kVelocityOnly);
     intakeMotor.setSmartCurrentLimit(30);
     intakeMotor.setIdleMode(IdleMode.kBrake);
     intakeMotor.enableVoltageCompensation(12);

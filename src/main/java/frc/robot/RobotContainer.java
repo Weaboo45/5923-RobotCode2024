@@ -48,6 +48,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.commands.manual.JoyStickCommands.*;
 import frc.robot.commands.manual.ControllerCommands.*;
 import frc.robot.commands.automatic.*;
+import frc.robot.commands.autonomous.SimpleAutonomous;
 import frc.robot.subsystems.*;
 
 /**
@@ -94,7 +95,7 @@ public class RobotContainer {
 
   /// COMMANDS ///
   // Auto Commands
-  //private final SimpleAutonomous simpleAuto = new SimpleAutonomous(drivetrain, ahrs);
+  private final SimpleAutonomous simpleAuto = new SimpleAutonomous(scoreSub, drivetrain);
   private final AutoIntake intakeComand = new AutoIntake(scoreSub);
   private final AutoShoot shootComand = new AutoShoot(scoreSub);
 
@@ -172,21 +173,13 @@ public class RobotContainer {
     .withPosition(2, 1).withSize(2, 1).withWidget(BuiltInWidgets.kNumberBar);
     controllerLayout.addNumber("right trigger", () -> ps4.getR2Axis())
     .withPosition(2, 2).withSize(2, 1).withWidget(BuiltInWidgets.kNumberBar);
-
-    //ShuffleboardLayout autonChooser = m_tab.getLayout("Autons", BuiltInLayouts.kList)
-    //.withPosition(0, 3).withSize(2, 3).withProperties(Map.of("lable position", "BOTTOM"));
-    //autonChooser.add("Auto Chooser", m_chooser);
-
-    //m_chooser.setDefaultOption("Path Test", new PathPlannerAuto("Test Auto"));
-    //m_chooser.addOption("Automatic autonomous", pidAuto);
   }
 
   private void configureSmartDashboard(){
-    m_chooser.setDefaultOption("Scoring Sub Check", new PathPlannerAuto("Intake&Shoot"));
-    
+    m_chooser.setDefaultOption("Simple Auton", simpleAuto);
     m_chooser.addOption("Square", new PathPlannerAuto("SquareAuto"));
     m_chooser.addOption("Test Auto", new PathPlannerAuto("Test Auto"));
-    m_chooser.addOption("Intake and shooter test", new PathPlannerAuto("Intake&Shoot"));
+    m_chooser.addOption("Intake and shooter test", new PathPlannerAuto("IntakeShoot"));
     SmartDashboard.putData(m_chooser);
   }
 
@@ -206,8 +199,7 @@ public class RobotContainer {
    * {@link edu.wpi.first.wpilibj2.command.button.JoystickButton}.
    */
   private void configureBindings() {
-    SmartDashboard.putData("Auto", new PathPlannerAuto("Test Auto"));
-    SmartDashboard.putData("Auto", new PathPlannerAuto("SquareAuto"));
+    SmartDashboard.putData("Intake Auto", simpleAuto);
   }
   
   /**
@@ -225,7 +217,6 @@ public class RobotContainer {
         //return AutoBuilder.followPath(path);
     return m_chooser.getSelected();
   }
-  
 
   public void displayValues() {
   SmartDashboard.putData(drivetrain);

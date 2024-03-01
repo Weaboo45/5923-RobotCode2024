@@ -138,6 +138,13 @@ public final class Constants {
     public static final double TURN_MOTOR_PCONVERSION = 360 / TURN_MOTOR_GEAR_RATIO;
     public static final double DRIVE_MOTOR_VCONVERSION = DRIVE_MOTOR_PCONVERSION / 60.0;
 
+    //Arm motor Conversion Factors
+    public static final double ARM_MOTOR_GEAR_RATIO = 0.1875;
+    public static final double ARM_DIAMETER = 35;
+
+    public static final double ARM_MOTOR_PCONVERSION = ARM_DIAMETER * Math.PI / ARM_MOTOR_GEAR_RATIO;
+    public static final double ARM_MOTOR_VCONVERSION = ARM_MOTOR_PCONVERSION / 60;
+
     // Autonomous drivetrain PID
     public static double AUTON_KP = 0;
     public static double AUTON_KI = 0;

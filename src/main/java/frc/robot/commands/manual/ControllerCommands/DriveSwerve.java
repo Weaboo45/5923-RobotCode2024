@@ -69,13 +69,13 @@ public class DriveSwerve extends Command {
       fieldDrive = !fieldDrive;
     }
 
-    drivetrain.swerveDrive( new Translation2d(translationVal * 2, strafeVal * 2),
+    drivetrain.swerveDrive( new Translation2d(translationVal * 3, strafeVal * 3),
       rotationVal * 4, fieldDrive, false);
   }
 
   // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted) {;
+  public void end(boolean interrupted) {
     //drivetrain.stopModules();
   }
 

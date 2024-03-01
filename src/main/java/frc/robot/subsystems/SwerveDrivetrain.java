@@ -109,13 +109,6 @@ public class SwerveDrivetrain extends SubsystemBase {
     }
   }
 
-  public void formX(){
-    swerveModules[0].setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)), false);
-    swerveModules[1].setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)), false);
-    swerveModules[2].setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)), false);
-    swerveModules[3].setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)), false);
-  }
-
   public Field2d getField() {
     return field;
   }

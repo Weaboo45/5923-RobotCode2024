@@ -8,7 +8,6 @@ import org.littletonrobotics.junction.Logger;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
-//import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
@@ -23,12 +22,8 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.lib.SwerveModuleConstants;
-//import frc.lib.util.CANCoderUtil;
-//import frc.lib.util.CANSparkMaxUtil;
-//import frc.lib.util.CANCoderUtil.CCUsage;
-//import frc.lib.util.CANSparkMaxUtil.Usage;
+
 import frc.robot.Constants;
-//import frc.robot.Robot;
 
 public class SwerveModules extends SubsystemBase {
   public int moduleNumber;
@@ -81,6 +76,7 @@ public class SwerveModules extends SubsystemBase {
     desiredState = SwerveModuleState.optimize(desiredState, getState().angle); 
     //desiredState = new SwerveModuleState(desiredState.speedMetersPerSecond, getState().angle);
     setAngle(desiredState);
+
     setSpeed(desiredState, isOpenLoop);
 
     SmartDashboard.putString("Swerve [" + driveMotor.getDeviceId() + "] State", getState().toString());
@@ -122,7 +118,6 @@ public class SwerveModules extends SubsystemBase {
   }
 
   private void configAngleEncoder() {
-      //var toApply = new CANcoderConfiguration();
     configs.MagnetSensor.AbsoluteSensorRange = AbsoluteSensorRangeValue.Signed_PlusMinusHalf;
     //configs.MountPose.MagnetOffset = 0.26;
     //configs.MountPose.SensorDirection = SensorDirectionValue.Clockwise_Positive;
@@ -133,9 +128,7 @@ public class SwerveModules extends SubsystemBase {
 
   private void configTurnMotor() {
     turnMotor.restoreFactoryDefaults();
-    //CANSparkMaxUtil.setCANSparkMaxBusUsage(turnMotor, Usage.kPositionOnly);
     turnMotor.setSmartCurrentLimit(30);
-    //turnMotor.setInverted(true);
     turnMotor.setIdleMode(IdleMode.kCoast);
     turnEncoder.setPositionConversionFactor(Constants.TURN_MOTOR_PCONVERSION);
     turnPIDController.setPositionPIDWrappingEnabled(true);
@@ -152,9 +145,7 @@ public class SwerveModules extends SubsystemBase {
 
   private void configDriveMotor() {
     driveMotor.restoreFactoryDefaults();
-    //CANSparkMaxUtil.setCANSparkMaxBusUsage(driveMotor, Usage.kVelocityOnly);
     driveMotor.setSmartCurrentLimit(40);
-    //driveMotor.setInverted(false);
     driveMotor.setIdleMode(IdleMode.kBrake);
     driveEncoder.setVelocityConversionFactor(Constants.DRIVE_MOTOR_VCONVERSION);
     driveEncoder.setPositionConversionFactor(Constants.DRIVE_MOTOR_PCONVERSION);

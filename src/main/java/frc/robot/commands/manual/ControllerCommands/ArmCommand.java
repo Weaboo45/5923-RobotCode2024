@@ -30,8 +30,8 @@ public class ArmCommand extends Command{
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    double rightTriggerVal = rightTrigger.get();
-    double leftTriggerVal = leftTrigger.get();
+    double rightTriggerVal = rightTrigger.get() *.25;
+    double leftTriggerVal = leftTrigger.get() *.25;
     double sumVal = rightTriggerVal - leftTriggerVal;
     subsystem.moveArm(sumVal);
 

@@ -67,7 +67,7 @@ public class Robot extends LoggedRobot {
       case REAL:
         // Running on a real robot, log to a USB stick
         Logger.addDataReceiver(new WPILOGWriter("/U"));
-        Logger.addDataReceiver(new WPILOGWriter("C:/Users/ynots/Documents/WPILogs2024"));
+        //Logger.addDataReceiver(new WPILOGWriter("C:/Users/ynots/Documents/WPILogs2024"));
         Logger.addDataReceiver(new NT4Publisher());
         break;
 
@@ -125,7 +125,7 @@ Logger.start(); // Start logging! No more data receivers, replay sources, or met
    */
   @Override
   public void autonomousInit() {
-    //m_autonomousCommand = m_robotContainer.getAutonomousCommand();
+    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
     // schedule the autonomous command (example)
     if (m_autonomousCommand != null) {

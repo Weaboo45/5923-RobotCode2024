@@ -30,7 +30,7 @@ public class AutoShoot extends Command{
             subsystem.intake(0);
           }
 
-          subsystem.shooter(.5);
+          subsystem.shooter(.25);
         } else {
           subsystem.shooter(0);
         }

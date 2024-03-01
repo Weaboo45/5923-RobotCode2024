@@ -7,9 +7,7 @@ import frc.robot.subsystems.ScoringSubsystem;
 
 public class JoystickArmCommand extends Command{
     private ScoringSubsystem subsystem;
-    //private Supplier<Double> armMovement;
     private Supplier<Boolean> intakeButtonForward, intakeButtonBackward, shooterButton, armUp, armDown;
-    //private boolean forward, backward, shooterOn;
 
     public JoystickArmCommand(ScoringSubsystem subsystem, Supplier<Boolean> armUp, Supplier<Boolean> armDown,
     Supplier<Boolean> intakeButtonForward, Supplier<Boolean> intakeButtonBackward, Supplier<Boolean> shooterButton){
@@ -32,17 +30,14 @@ public class JoystickArmCommand extends Command{
   public void execute() {
 
     if(armUp.get()){
-      subsystem.moveArm(1.0);
+      subsystem.moveArm(.25);
     }
     if(armDown.get()){
-      subsystem.moveArm(-1.0);
+      subsystem.moveArm(-.25);
     }
     if(armUp.get() == false && armDown.get() == false){
       subsystem.moveArm(0.0);
     }
-
-    //double armMovementVal = armMovement.get();
-    //subsystem.moveArm(armMovementVal);
 
     if(intakeButtonForward.get()){
         subsystem.intake(0.5);
