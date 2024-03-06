@@ -7,27 +7,17 @@
 
 package frc.robot;
 
-//import static frc.robot.Constants.*;
 import edu.wpi.first.wpilibj.Joystick;
 //import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
 
-//import java.util.HashMap;
 import java.util.Map;
-//import java.util.Optional;
 
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
-
-/*
-import com.pathplanner.lib.PathPlanner;
-import com.pathplanner.lib.PathPlannerTrajectory;
-import com.pathplanner.lib.auto.PIDConstants;
-import com.pathplanner.lib.auto.SwerveAutoBuilder;
-*/
 
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.PS4Controller;
@@ -43,8 +33,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.commands.manual.JoyStickCommands.*;
 import frc.robot.commands.manual.ControllerCommands.*;
 import frc.robot.commands.automatic.*;
@@ -89,12 +80,15 @@ public class RobotContainer {
   /// SUBSYSTEMS ///
   public static final SwerveDrivetrain drivetrain = new SwerveDrivetrain();
   public static final ScoringSubsystem scoreSub = new ScoringSubsystem();
+  public static final ArmSubsystem armSub = new ArmSubsystem();
 
   /// OI DEVICES / HARDWARE ///
   private final XboxController xbox = new XboxController(0);
   private final PS4Controller ps4 = new PS4Controller(0);
   private final Joystick stick = new Joystick(1);
   private static final AHRS ahrs = new AHRS(Port.kMXP);
+
+  CommandXboxController commandXbox = new CommandXboxController(0);
 
 
   /// COMMANDS ///
@@ -209,6 +203,31 @@ public class RobotContainer {
    */
   private void configureBindings() {
     SmartDashboard.putData("Intake Auto", simpleAuto);
+
+    //button comands for arm
+    commandXbox.a().onTrue
+    (Commands.runOnce(
+      ()-> {
+        armSub.setGoal(2);
+        armSub.enable();
+      }, armSub));
+
+      commandXbox.b().onTrue
+    (Commands.runOnce(
+      ()-> {
+        armSub.setGoal(.5);
+        armSub.enable();
+      }, armSub));
+
+      commandXbox.y().onTrue(Commands.runOnce(armSub::disable));
+  }
+
+  /**
+   * Disables all ProfiledPIDSubsystem and PIDSubsystem instances. This should be called on robot
+   * disable to prevent integral windup.
+   */
+  public void disablePIDSubsystems() {
+    armSub.disable();
   }
   
   /**

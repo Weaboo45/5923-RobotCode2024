@@ -140,10 +140,10 @@ public final class Constants {
 
     //Arm motor Conversion Factors
     public static final double ARM_MOTOR_GEAR_RATIO = 0.1875;
-    public static final double ARM_DIAMETER = 35;
+    public static final double ARM_DIAMETER = Units.inchesToMeters(35); //inches
 
     public static final double ARM_MOTOR_PCONVERSION = ARM_DIAMETER * Math.PI / ARM_MOTOR_GEAR_RATIO;
-    public static final double ARM_MOTOR_VCONVERSION = ARM_MOTOR_PCONVERSION / 60;
+    public static final double ARM_MOTOR_VCONVERSION = ARM_MOTOR_PCONVERSION / 60.0;
 
     // Autonomous drivetrain PID
     public static double AUTON_KP = 0;
@@ -174,7 +174,7 @@ public final class Constants {
 
     //Arm motor Conversion Factors
     public static final double ARM_MOTOR_GEAR_RATIO = 0.1875;
-    public static final double ARM_DIAMETER = 35;
+    public static final double ARM_DIAMETER = Units.inchesToMeters(35);
 
     public static final double ARM_MOTOR_PCONVERSION = ARM_DIAMETER * Math.PI / ARM_MOTOR_GEAR_RATIO;
     public static final double ARM_MOTOR_VCONVERSION = ARM_MOTOR_PCONVERSION / 60;
@@ -182,9 +182,13 @@ public final class Constants {
     public static final int rightArmMotorID = 10;
     public static final int leftArmMotorID = 11;
 
+    //filler vals
     public static final int [] kEncoderPorts = new int[] {0, 1};
 
     public static final double kP = 1;
+
+    public static final int kEncoderPPR = 1025; // 975.6  ||try both
+    public static final double kEncoderDistancePerPulse = ARM_MOTOR_PCONVERSION / kEncoderPPR;
 
     // These are fake gains; in actuality these must be determined individually for each robot
     public static final double kSVolts = 1;
@@ -192,10 +196,9 @@ public final class Constants {
     public static final double kVVoltSecondPerRad = 0.5;
     public static final double kAVoltSecondSquaredPerRad = 0.1;
 
-    public static final double kMaxVelocityRadPerSecond = 3;
-    public static final double kMaxAccelerationRadPerSecSquared = 10;
+    public static final double kMaxVelocityRadPerSecond = 2;
+    public static final double kMaxAccelerationRadPerSecSquared = 3;
 
     public static final double kArmOffsetRads = 0.5;
-
     }
 }

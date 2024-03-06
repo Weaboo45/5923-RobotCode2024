@@ -54,7 +54,7 @@ public class ScoringSubsystem extends SubsystemBase {
       configTopShooterMotor();
       configIntakeMotor();
       
-      SmartDashboard.putNumber("Left Arm Encoder Val", getAngle());
+      SmartDashboard.putNumber("Left Arm Encoder position", getAngle());
   }
 
   private void configAngleEncoder() {
