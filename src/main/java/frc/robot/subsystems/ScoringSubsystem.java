@@ -98,7 +98,7 @@ public class ScoringSubsystem extends SubsystemBase {
   }
 
   public double getAngle(){
-    return absoluteEncoder.getDistance() + ArmConstants.kArmOffsetRads;
+    return (absoluteEncoder.getDistance() + ArmConstants.kArmOffsetRads) / (ArmConstants.ARM_DIAMETER / 2.0);
   }
 
   public void moveArm(double pivotSpeed){
