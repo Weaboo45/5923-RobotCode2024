@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 import frc.robot.Constants;
+import frc.robot.Constants.ArmConstants;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
@@ -9,9 +10,11 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
+import edu.wpi.first.wpilibj.Encoder;
+
 //import edu.wpi.first.math.geometry.Rotation2d;
 
-//import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -22,8 +25,7 @@ public class ScoringSubsystem extends SubsystemBase {
     private CANSparkMax rightArmMotor;
 
     //arm CANcoder
-    private CANcoderConfiguration configs = new CANcoderConfiguration();
-    private CANcoder absoluteEncoder;
+    private final Encoder absoluteEncoder = new Encoder(ArmConstants.kEncoderPorts[0], ArmConstants.kEncoderPorts[1]);
 
     //shooter motors
     private CANSparkMax topShooterMotor;
@@ -32,10 +34,7 @@ public class ScoringSubsystem extends SubsystemBase {
     //intake motor
     private CANSparkMax intakeMotor;
 
-    public ScoringSubsystem() {
-      absoluteEncoder = new CANcoder(0);
-      configAngleEncoder();
-    
+    public ScoringSubsystem() {    
       //arm motors
       leftArmMotor = new CANSparkMax(Constants.leftArmMotorID, MotorType.kBrushless);
       rightArmMotor = new CANSparkMax(Constants.rightArmMotorID, MotorType.kBrushless);
@@ -54,14 +53,8 @@ public class ScoringSubsystem extends SubsystemBase {
       configTopShooterMotor();
       configIntakeMotor();
       
-      SmartDashboard.putNumber("Left Arm Encoder position", getAngle());
-  }
-
-  private void configAngleEncoder() {
-    configs.MagnetSensor.AbsoluteSensorRange = AbsoluteSensorRangeValue.Signed_PlusMinusHalf;
-    absoluteEncoder.getConfigurator().apply(configs);
-    absoluteEncoder.getPosition().setUpdateFrequency(100);
-    absoluteEncoder.getVelocity().setUpdateFrequency(100);
+      SmartDashboard.putNumber("Arm Encoder position", getAngle());
+      Logger.recordOutput("Arm Distance", getAngle());
   }
 
   private void configRightArmMotor() {
@@ -105,7 +98,7 @@ public class ScoringSubsystem extends SubsystemBase {
   }
 
   public double getAngle(){
-    return absoluteEncoder.getPosition().getValueAsDouble();
+    return absoluteEncoder.getDistance() + ArmConstants.kArmOffsetRads;
   }
 
   public void moveArm(double pivotSpeed){
