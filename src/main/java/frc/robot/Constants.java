@@ -167,4 +167,35 @@ public final class Constants {
       4.0, 
       MODULE_OFFSET.getNorm(), // Drive base radius (distance from center to furthest module) 
       new ReplanningConfig());
+
+
+      
+    public static final class ArmConstants {
+
+    //Arm motor Conversion Factors
+    public static final double ARM_MOTOR_GEAR_RATIO = 0.1875;
+    public static final double ARM_DIAMETER = 35;
+
+    public static final double ARM_MOTOR_PCONVERSION = ARM_DIAMETER * Math.PI / ARM_MOTOR_GEAR_RATIO;
+    public static final double ARM_MOTOR_VCONVERSION = ARM_MOTOR_PCONVERSION / 60;
+
+    public static final int rightArmMotorID = 10;
+    public static final int leftArmMotorID = 11;
+
+    public static final int [] kEncoderPorts = new int[] {0, 1};
+
+    public static final double kP = 1;
+
+    // These are fake gains; in actuality these must be determined individually for each robot
+    public static final double kSVolts = 1;
+    public static final double kGVolts = 1;
+    public static final double kVVoltSecondPerRad = 0.5;
+    public static final double kAVoltSecondSquaredPerRad = 0.1;
+
+    public static final double kMaxVelocityRadPerSecond = 3;
+    public static final double kMaxAccelerationRadPerSecSquared = 10;
+
+    public static final double kArmOffsetRads = 0.5;
+
+    }
 }
