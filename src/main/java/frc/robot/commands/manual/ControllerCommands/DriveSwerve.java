@@ -65,10 +65,6 @@ public class DriveSwerve extends Command {
     double rotationVal = rotationLimiter
         .calculate(MathUtil.applyDeadband(z.get(), Constants.ROTATION_DEADBAND));
 
-    if(fieldTOrientated.get()){
-      fieldDrive = !fieldDrive;
-    }
-
     drivetrain.swerveDrive( new Translation2d(translationVal * 3, strafeVal * 3),
       rotationVal * 4, fieldDrive, false);
   }

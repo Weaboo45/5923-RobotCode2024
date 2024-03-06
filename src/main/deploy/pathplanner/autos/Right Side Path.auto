@@ -8,12 +8,12 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Square"
+            "pathName": "Right Side Path"
           }
         }
       ]
     }
   },
-  "folder": "Test Autos Folder",
+  "folder": null,
   "choreoAuto": false
 }

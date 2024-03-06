@@ -4,24 +4,19 @@
 
 package frc.robot.commands.autonomous;
 
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.ScoringSubsystem;
-import frc.robot.subsystems.SwerveDrivetrain;
 
-
-public class SimpleAutonomous extends Command {
-  private ScoringSubsystem subsystem;
-  private SwerveDrivetrain drivetrain;
+public class ScoreAmp extends Command {
+    private ScoringSubsystem subsystem;
   private int phase;
   private Timer timer = new Timer();
 
-  /** Creates a new SimpleAutonomous. */
-  public SimpleAutonomous(ScoringSubsystem subsystem, SwerveDrivetrain drivetrain) {
-    addRequirements(subsystem, drivetrain);
+  /** Creates a new ScoreAmp. */
+  public ScoreAmp(ScoringSubsystem subsystem) {
+    addRequirements(subsystem);
     this.subsystem = subsystem;
-    this.drivetrain = drivetrain;
   }
 
   // Called when the command is initially scheduled.
@@ -43,17 +38,30 @@ public class SimpleAutonomous extends Command {
 
   private void timedAutoSequence() {
     switch (phase){
-       case 1: //drive out
-       if(timer.get() < 5){
-        drivetrain.swerveDrive( new Translation2d(1, 0), 0, true, false);
+      case 1: //raise arm
+       if(timer.get() < 1){
+        subsystem.moveArm(0.25); //-.25
        } else {
-        drivetrain.swerveDrive( new Translation2d( 0, 0), 0, true, false);
+        subsystem.moveArm(0);
         phase++;
        }
-       break;
+        break;
 
+       case 2: // shoot note
+       if(timer.get() < 4){
+        subsystem.shooter(.1);
+        if(timer.get() < 3){
+          subsystem.intake(1);
+        }
+       } else {
+        subsystem.shooter(0);
+        subsystem.intake(0);
+        phase++;
+       }
+        break;
       default:
-        drivetrain.swerveDrive( new Translation2d( 0, 0), 0, true, false);
+        subsystem.shooter(0);
+        subsystem.intake(0);
     }
   }
 

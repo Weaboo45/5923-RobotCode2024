@@ -48,6 +48,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.commands.manual.JoyStickCommands.*;
 import frc.robot.commands.manual.ControllerCommands.*;
 import frc.robot.commands.automatic.*;
+import frc.robot.commands.autonomous.ScoreAmp;
 import frc.robot.commands.autonomous.SimpleAutonomous;
 import frc.robot.subsystems.*;
 
@@ -63,6 +64,7 @@ public class RobotContainer {
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
   private final SendableChooser<Command> m_chooser;
+    private final ScoreAmp scoreAmp = new ScoreAmp(scoreSub);
 
   public RobotContainer() {
     m_chooser = AutoBuilder.buildAutoChooser();
@@ -74,6 +76,8 @@ public class RobotContainer {
 
     NamedCommands.registerCommand("Intake", intakeComand);
     NamedCommands.registerCommand("Shoot", shootComand);
+
+    NamedCommands.registerCommand("ScoreAmp", scoreAmp);
 
     SmartDashboard.putData("Auto Mode", m_chooser);
   }
@@ -87,7 +91,7 @@ public class RobotContainer {
   public static final ScoringSubsystem scoreSub = new ScoringSubsystem();
 
   /// OI DEVICES / HARDWARE ///
-  //private final XboxController xbox = new XboxController(0);
+  private final XboxController xbox = new XboxController(0);
   private final PS4Controller ps4 = new PS4Controller(0);
   private final Joystick stick = new Joystick(1);
   private static final AHRS ahrs = new AHRS(Port.kMXP);
@@ -96,16 +100,17 @@ public class RobotContainer {
   /// COMMANDS ///
   // Auto Commands
   private final SimpleAutonomous simpleAuto = new SimpleAutonomous(scoreSub, drivetrain);
+
   private final AutoIntake intakeComand = new AutoIntake(scoreSub);
   private final AutoShoot shootComand = new AutoShoot(scoreSub);
 
   // Xbox controls
-  //private final DriveSwerve drivetrainXbox = new DriveSwerve(drivetrain, () -> -xbox.getLeftY(), ()-> xbox.getLeftX(), ()-> -xbox.getRightX(),
-  // () -> xbox.getRightBumper(), ()-> xbox.getLeftBumper(), ()-> xbox.getAButton()); //RB toggles field orintation || LB toggles speed || A button resets heading
+  private final DriveSwerve drivetrainXbox = new DriveSwerve(drivetrain, () -> -xbox.getLeftY(), ()-> xbox.getLeftX(), ()-> -xbox.getRightX(),
+   () -> xbox.getRightBumper(), ()-> xbox.getLeftBumper()); //RB toggles field orintation || LB resets heading
 
   // Playstation Controls
   private final DriveSwerve drivePlaystation = new DriveSwerve(drivetrain, () -> -ps4.getLeftY(), () -> ps4.getLeftX(),() -> -ps4.getRightX(),
-   () -> ps4.getR1Button(), () -> ps4.getL1Button()); //R1 toggles field orintation || L1 toggles speed || X button resets heading
+   () -> ps4.getR1Button(), () -> ps4.getL1Button()); //R1 toggles field orintation || L1 button resets heading
 
   // Joystick Controls
   private final DriveJoystickSwerve driveJoystick = new DriveJoystickSwerve(drivetrain, () -> stick.getY(), () -> stick.getX(), () -> stick.getTwist(),
@@ -115,8 +120,8 @@ public class RobotContainer {
   private final ArmCommand ps4Arm = new ArmCommand(scoreSub, () -> ps4.getR2Axis(), () -> ps4.getL2Axis(),
   () -> ps4.getSquareButton(), () -> ps4.getTriangleButton(), () -> ps4.getCrossButton());
 
-  private final JoystickArmCommand joystickArm = new JoystickArmCommand(scoreSub, () -> stick.getRawButton(6), () -> stick.getRawButton(4), () -> stick.getRawButton(2),
-  () -> stick.getRawButton(3),  () -> stick.getTrigger());
+  private final JoystickArmCommand joystickArm = new JoystickArmCommand(scoreSub, () -> stick.getRawButton(6), () -> stick.getRawButton(4), () -> stick.getTrigger(),
+  () -> stick.getRawButton(3), () -> stick.getRawButton(2));
   /// SHUFFLEBOARD METHODS ///
   /**
    * Use this command to define {@link Shuffleboard} buttons using a
@@ -133,8 +138,8 @@ public class RobotContainer {
     .withPosition(0, 0).withSize(2, 2)
     .withProperties(Map.of("label position", "BOTTOM"));
 
-    //drivingStyleLayout.add("Xbox Drive",
-    //new InstantCommand(() -> drivetrain.setDefaultCommand(drivetrainXbox), drivetrain));
+    drivingStyleLayout.add("Xbox Drive",
+    new InstantCommand(() -> drivetrain.setDefaultCommand(drivetrainXbox), drivetrain));
 
     drivingStyleLayout.add("PS5 Drive",
     new InstantCommand(() -> drivetrain.setDefaultCommand(drivePlaystation), drivetrain));
@@ -176,7 +181,12 @@ public class RobotContainer {
   }
 
   private void configureSmartDashboard(){
+    //match Auto
     m_chooser.setDefaultOption("Simple Auton", simpleAuto);
+    m_chooser.addOption("Amp Auto", new PathPlannerAuto("AmpAuto"));
+    m_chooser.addOption("Right Side Path", new PathPlannerAuto("Right Side Path"));
+
+    //test Autos
     m_chooser.addOption("Square", new PathPlannerAuto("SquareAuto"));
     m_chooser.addOption("Test Auto", new PathPlannerAuto("Test Auto"));
     m_chooser.addOption("Intake and shooter test", new PathPlannerAuto("IntakeShoot"));
@@ -188,9 +198,8 @@ public class RobotContainer {
    * Default commands are ran whenever no other commands are using a specific subsystem.
    */
   private void configureInitialDefaultCommands() {
-    drivetrain.setDefaultCommand(drivePlaystation);
+    drivetrain.setDefaultCommand(drivetrainXbox);
     scoreSub.setDefaultCommand(joystickArm);
-
   }
   /**
    * Use this method to define your button->command mappings.  Buttons can be created by

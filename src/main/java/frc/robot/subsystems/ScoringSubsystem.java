@@ -1,29 +1,29 @@
 package frc.robot.subsystems;
 import frc.robot.Constants;
 
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.SparkPIDController;
-import com.revrobotics.CANSparkBase.ControlType;
+//import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
-//import frc.lib.util.CANCoderUtil;
-//import frc.lib.util.CANSparkMaxUtil;
-//import frc.lib.util.CANCoderUtil.CCUsage;
-//import frc.lib.util.CANSparkMaxUtil.Usage;
 
-import org.littletonrobotics.junction.Logger;
+//import edu.wpi.first.math.geometry.Rotation2d;
 
-import edu.wpi.first.wpilibj.Encoder;
+//import org.littletonrobotics.junction.Logger;
+
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class ScoringSubsystem extends SubsystemBase {
-    //arm motors/encoders
+    //arm motors
     private CANSparkMax leftArmMotor;
     private CANSparkMax rightArmMotor;
-    private RelativeEncoder leftArmEncoder;
-    private RelativeEncoder rightArmEncoder;
+
+    //arm CANcoder
+    private CANcoderConfiguration configs = new CANcoderConfiguration();
+    private CANcoder absoluteEncoder;
 
     //shooter motors
     private CANSparkMax topShooterMotor;
@@ -32,76 +32,52 @@ public class ScoringSubsystem extends SubsystemBase {
     //intake motor
     private CANSparkMax intakeMotor;
 
-    private SparkPIDController rightArmController, leftArmController;
-
     public ScoringSubsystem() {
+      absoluteEncoder = new CANcoder(0);
+      configAngleEncoder();
     
-        //arm motors
-        leftArmMotor = new CANSparkMax(Constants.leftArmMotorID, MotorType.kBrushless);
-        rightArmMotor = new CANSparkMax(Constants.rightArmMotorID, MotorType.kBrushless);
-
-        //arm encoders
-        leftArmEncoder = leftArmMotor.getEncoder();
-        rightArmEncoder = rightArmMotor.getEncoder();
+      //arm motors
+      leftArmMotor = new CANSparkMax(Constants.leftArmMotorID, MotorType.kBrushless);
+      rightArmMotor = new CANSparkMax(Constants.rightArmMotorID, MotorType.kBrushless);
         
-        //shooter motors
-        topShooterMotor = new CANSparkMax(Constants.topShooterMotorID, MotorType.kBrushless);
-        bottomShooterMotor = new CANSparkMax(Constants.bottomShooterMotorID, MotorType.kBrushless);
+      //shooter motors
+      topShooterMotor = new CANSparkMax(Constants.topShooterMotorID, MotorType.kBrushless);
+      bottomShooterMotor = new CANSparkMax(Constants.bottomShooterMotorID, MotorType.kBrushless);
         
-        //intake motor
-        intakeMotor = new CANSparkMax(Constants.intakeMotorID, MotorType.kBrushed);
+      //intake motor
+      intakeMotor = new CANSparkMax(Constants.intakeMotorID, MotorType.kBrushed);
 
-        //PID controller
-        rightArmController = rightArmMotor.getPIDController();
-        leftArmController = leftArmMotor.getPIDController();
+      //motor configs
+      configLeftArmMotor();
+      configRightArmMotor();
+      configBottorShooterMotor();
+      configTopShooterMotor();
+      configIntakeMotor();
+      
+      SmartDashboard.putNumber("Left Arm Encoder Val", getAngle());
+  }
 
-        //motor configs
-        configLeftArmMotor();
-        configRightArmMotor();
-        configBottorShooterMotor();
-        configTopShooterMotor();
-        configIntakeMotor();
+  private void configAngleEncoder() {
+    configs.MagnetSensor.AbsoluteSensorRange = AbsoluteSensorRangeValue.Signed_PlusMinusHalf;
+    absoluteEncoder.getConfigurator().apply(configs);
+    absoluteEncoder.getPosition().setUpdateFrequency(100);
+    absoluteEncoder.getVelocity().setUpdateFrequency(100);
   }
 
   private void configRightArmMotor() {
     rightArmMotor.restoreFactoryDefaults();
     rightArmMotor.setSmartCurrentLimit(15);
     rightArmMotor.setIdleMode(IdleMode.kBrake);
-    rightArmEncoder.setPositionConversionFactor(Constants.ARM_MOTOR_PCONVERSION);
-    rightArmEncoder.setVelocityConversionFactor(Constants.ARM_MOTOR_VCONVERSION);
-    
-    rightArmController.setPositionPIDWrappingEnabled(true);
-    rightArmController.setPositionPIDWrappingMinInput(-180.0);
-    rightArmController.setPositionPIDWrappingMaxInput(180.0);
-    rightArmController.setP(Constants.ROTATE_KP);
-    rightArmController.setI(Constants.ROTATE_KI);
-    rightArmController.setD(Constants.ROTATE_KD);
-    rightArmController.setFF(0.0);
-    
     rightArmMotor.enableVoltageCompensation(12);
     rightArmMotor.burnFlash();
-    rightArmEncoder.setPosition(0);
   }
 
   private void configLeftArmMotor() {
     leftArmMotor.restoreFactoryDefaults();
     leftArmMotor.setSmartCurrentLimit(15);
     leftArmMotor.setIdleMode(IdleMode.kBrake);
-
-    leftArmEncoder.setVelocityConversionFactor(Constants.ARM_MOTOR_VCONVERSION);
-    leftArmEncoder.setPositionConversionFactor(Constants.ARM_MOTOR_PCONVERSION);
-
-    leftArmController.setPositionPIDWrappingEnabled(true);
-    leftArmController.setPositionPIDWrappingMinInput(-180.0);
-    leftArmController.setPositionPIDWrappingMaxInput(180.0);
-    leftArmController.setP(Constants.ROTATE_KP);
-    leftArmController.setI(Constants.ROTATE_KI);
-    leftArmController.setD(Constants.ROTATE_KD);
-    leftArmController.setFF(0.0);
-    
     leftArmMotor.enableVoltageCompensation(12);
     leftArmMotor.burnFlash();
-    leftArmEncoder.setPosition(0.0);
   }
 
   private void configTopShooterMotor() {
@@ -126,6 +102,10 @@ public class ScoringSubsystem extends SubsystemBase {
     intakeMotor.setIdleMode(IdleMode.kBrake);
     intakeMotor.enableVoltageCompensation(12);
     intakeMotor.burnFlash();
+  }
+
+  public double getAngle(){
+    return absoluteEncoder.getPosition().getValueAsDouble();
   }
 
   public void moveArm(double pivotSpeed){
