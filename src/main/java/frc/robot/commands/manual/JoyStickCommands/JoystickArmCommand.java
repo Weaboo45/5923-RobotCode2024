@@ -3,21 +3,29 @@ package frc.robot.commands.manual.JoyStickCommands;
 import java.util.function.Supplier;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.ScoringSubsystem;
 
 public class JoystickArmCommand extends Command{
     private ScoringSubsystem subsystem;
-    private Supplier<Boolean> intakeButtonForward, intakeButtonBackward, shooterButton, armUp, armDown;
+    private ClimberSubsystem climbSub;
+    private Supplier<Boolean> intakeButtonForward, armUp, armDown, climbUp, climbDown;
 
-    public JoystickArmCommand(ScoringSubsystem subsystem, Supplier<Boolean> armUp, Supplier<Boolean> armDown,
-    Supplier<Boolean> intakeButtonForward, Supplier<Boolean> intakeButtonBackward, Supplier<Boolean> shooterButton){
-        addRequirements(subsystem);
+    public JoystickArmCommand(ScoringSubsystem subsystem, ClimberSubsystem climbSub,
+     Supplier<Boolean> intakeButtonForward,
+     Supplier<Boolean> armUp, Supplier<Boolean> armDown,
+     Supplier<Boolean> climbUp, Supplier<Boolean> climbDown){
+        addRequirements(subsystem, climbSub);
+        this.climbSub = climbSub;
         this.subsystem = subsystem;
+
+        this.climbUp = climbUp;
+        this.climbDown = climbDown;
+
+        this.intakeButtonForward = intakeButtonForward;
+
         this.armUp = armUp;
         this.armDown = armDown;
-        this.intakeButtonForward = intakeButtonForward;
-        this.intakeButtonBackward = intakeButtonBackward;
-        this.shooterButton = shooterButton;
     }
 
     // Called when the command is initially scheduled.
@@ -29,30 +37,32 @@ public class JoystickArmCommand extends Command{
   @Override
   public void execute() {
 
+    if(intakeButtonForward.get()){
+        subsystem.intakeFoward();
+        subsystem.shooter(-.125);
+    } else {
+        subsystem.intakeOff();
+        subsystem.shooter(0.0);
+    }
+
     if(armUp.get()){
-      subsystem.moveArm(.25);
+      subsystem.moveArm(.3);
     }
     if(armDown.get()){
-      subsystem.moveArm(-.25);
+      subsystem.moveArm(-.375);
     }
     if(armUp.get() == false && armDown.get() == false){
-      subsystem.moveArm(0.0);
+      subsystem.moveArm(0);
     }
 
-    if(intakeButtonForward.get()){
-        subsystem.intake(0.5);
+    if(climbUp.get()){
+      climbSub.climbUp();;
     }
-    if(intakeButtonBackward.get()){
-        subsystem.intake(-0.5);
+    if(climbDown.get()){
+      climbSub.climbDown();;
     }
-    if(intakeButtonForward.get() == false && intakeButtonBackward.get() == false){
-        subsystem.intake(0.0);
-    }
-
-    if(shooterButton.get()){
-        subsystem.shooter(-0.5);
-    } else {
-      subsystem.shooter(0.0);
+    if(climbUp.get() == false && climbDown.get() == false){
+      climbSub.climbStop();
     }
   }
 

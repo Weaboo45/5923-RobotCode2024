@@ -35,11 +35,12 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.commands.manual.JoyStickCommands.*;
 import frc.robot.commands.manual.ControllerCommands.*;
 import frc.robot.commands.automatic.*;
-import frc.robot.commands.autonomous.ScoreAmp;
 import frc.robot.commands.autonomous.SimpleAutonomous;
 import frc.robot.subsystems.*;
 
@@ -51,11 +52,15 @@ import frc.robot.subsystems.*;
  * commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
+
+  //ParallelCommandGroup ampScore = new ParallelCommandGroup(
+    //new AutoIntake(scoreSub), new AutoShoot(scoreSub));
+  
   /*
    * The container for the robot. Contains subsystems, OI devices, and commands.
    */
   private final SendableChooser<Command> m_chooser;
-    private final ScoreAmp scoreAmp = new ScoreAmp(scoreSub);
+    //private final ScoreAmp scoreAmp = new ScoreAmp(scoreSub);
 
   public RobotContainer() {
     m_chooser = AutoBuilder.buildAutoChooser();
@@ -68,7 +73,7 @@ public class RobotContainer {
     NamedCommands.registerCommand("Intake", intakeComand);
     NamedCommands.registerCommand("Shoot", shootComand);
 
-    NamedCommands.registerCommand("ScoreAmp", scoreAmp);
+    //NamedCommands.registerCommand("ScoreAmp", ampScore);
 
     SmartDashboard.putData("Auto Mode", m_chooser);
   }
@@ -81,15 +86,26 @@ public class RobotContainer {
   public static final SwerveDrivetrain drivetrain = new SwerveDrivetrain();
   public static final ScoringSubsystem scoreSub = new ScoringSubsystem();
   public static final ArmSubsystem armSub = new ArmSubsystem();
+  public static final ClimberSubsystem climbSub = new ClimberSubsystem();
 
   /// OI DEVICES / HARDWARE ///
   private final XboxController xbox = new XboxController(0);
-  private final PS4Controller ps4 = new PS4Controller(0);
   private final Joystick stick = new Joystick(1);
   private static final AHRS ahrs = new AHRS(Port.kMXP);
 
-  CommandXboxController commandXbox = new CommandXboxController(0);
+  //CommandXboxController commandXbox = new CommandXboxController(0);
 
+  //Joystick Button Commands
+  JoystickButton shooterOn = new JoystickButton(stick, 1);
+
+  //intake buttons
+  JoystickButton intakeFoward = new JoystickButton(stick, 2);
+  JoystickButton intakeBackward = new JoystickButton(stick, 3);
+
+  //climber buttons
+  //JoystickButton climbUp = new JoystickButton(stick, 10);
+  //JoystickButton climbDown = new JoystickButton(stick, 9);
+  //JoystickButton climbStop = new JoystickButton(stick, 11);
 
   /// COMMANDS ///
   // Auto Commands
@@ -100,22 +116,14 @@ public class RobotContainer {
 
   // Xbox controls
   private final DriveSwerve drivetrainXbox = new DriveSwerve(drivetrain, () -> -xbox.getLeftY(), ()-> xbox.getLeftX(), ()-> -xbox.getRightX(),
-   () -> xbox.getRightBumper(), ()-> xbox.getLeftBumper()); //RB toggles field orintation || LB resets heading
-
-  // Playstation Controls
-  private final DriveSwerve drivePlaystation = new DriveSwerve(drivetrain, () -> -ps4.getLeftY(), () -> ps4.getLeftX(),() -> -ps4.getRightX(),
-   () -> ps4.getR1Button(), () -> ps4.getL1Button()); //R1 toggles field orintation || L1 button resets heading
+   () -> xbox.getRightBumperReleased(), ()-> xbox.getLeftBumper()); //RB toggles field orintation || LB resets heading
 
   // Joystick Controls
   private final DriveJoystickSwerve driveJoystick = new DriveJoystickSwerve(drivetrain, () -> stick.getY(), () -> stick.getX(), () -> stick.getTwist(),
    () -> stick.getRawButton(7), () -> stick.getRawButton(8), () -> stick.getThrottle());
-  
-  // Arm Command
-  private final ArmCommand ps4Arm = new ArmCommand(scoreSub, () -> ps4.getR2Axis(), () -> ps4.getL2Axis(),
-  () -> ps4.getSquareButton(), () -> ps4.getTriangleButton(), () -> ps4.getCrossButton());
 
-  private final JoystickArmCommand joystickArm = new JoystickArmCommand(scoreSub, () -> stick.getRawButton(6), () -> stick.getRawButton(4), () -> stick.getTrigger(),
-  () -> stick.getRawButton(3), () -> stick.getRawButton(2));
+  private final JoystickArmCommand joystickArm = new JoystickArmCommand(scoreSub, climbSub, () -> stick.getRawButton(12),
+   ()-> stick.getRawButton(8), ()-> stick.getRawButton(7), ()-> stick.getRawButton(5), ()-> stick.getRawButton(6));
   /// SHUFFLEBOARD METHODS ///
   /**
    * Use this command to define {@link Shuffleboard} buttons using a
@@ -125,8 +133,10 @@ public class RobotContainer {
   private void configureShuffleboardData() {
     Shuffleboard.selectTab(m_tab.getTitle());
 
-    ShuffleboardLayout encoders = m_tab.getLayout("Encoders", BuiltInLayouts.kGrid);
-    encoders.add("Encoder Reset", new InstantCommand(()-> drivetrain.resetToAbsolute()));
+    ShuffleboardLayout encoders = m_tab.getLayout("Encoders", BuiltInLayouts.kGrid).withSize(3, 3);
+    encoders.add("Encoder Reset", new InstantCommand(()-> scoreSub.resetEncoder()));
+    encoders.addNumber("Arm Encoder Angle", ()-> scoreSub.getRevEncoder()).withWidget(BuiltInWidgets.kNumberBar);
+    encoders.addNumber("Arm Encoder Distance", ()-> scoreSub.getDistance()).withWidget(BuiltInWidgets.kNumberBar);
 
     ShuffleboardLayout drivingStyleLayout = m_tab.getLayout("driving styles", BuiltInLayouts.kList)
     .withPosition(0, 0).withSize(2, 2)
@@ -134,12 +144,6 @@ public class RobotContainer {
 
     drivingStyleLayout.add("Xbox Drive",
     new InstantCommand(() -> drivetrain.setDefaultCommand(drivetrainXbox), drivetrain));
-
-    drivingStyleLayout.add("PS5 Drive",
-    new InstantCommand(() -> drivetrain.setDefaultCommand(drivePlaystation), drivetrain));
-
-    drivingStyleLayout.add("PS5 Arm Controll",
-    new InstantCommand(() -> scoreSub.setDefaultCommand(ps4Arm), scoreSub));
 
     drivingStyleLayout.add("Joystick Drive",
     new InstantCommand(() -> drivetrain.setDefaultCommand(driveJoystick), drivetrain));
@@ -160,17 +164,17 @@ public class RobotContainer {
     ShuffleboardLayout controllerLayout = m_tab.getLayout("Controller Vals", BuiltInLayouts.kGrid)
     .withPosition(4, 0).withSize(2, 6)
     .withProperties(Map.of("label position", "BOTTOM"));
-    controllerLayout.addNumber("left y", () -> -ps4.getLeftY())
+    controllerLayout.addNumber("left y", () -> -xbox.getLeftY())
     .withPosition(0, 0).withSize(2, 1).withWidget(BuiltInWidgets.kNumberBar);
-    controllerLayout.addNumber("left x", () -> ps4.getLeftX())
+    controllerLayout.addNumber("left x", () -> xbox.getLeftX())
     .withPosition(0, 1).withSize(2, 1).withWidget(BuiltInWidgets.kNumberBar);
-    controllerLayout.addNumber("left trigger", () -> ps4.getL2Axis())
+    controllerLayout.addNumber("left trigger", () -> xbox.getLeftTriggerAxis())
     .withPosition(0, 2).withSize(2, 1).withWidget(BuiltInWidgets.kNumberBar);
-    controllerLayout.addNumber("right y", () -> -ps4.getRightY())
+    controllerLayout.addNumber("right y", () -> -xbox.getRightY())
     .withPosition(2, 0).withSize(2, 1).withWidget(BuiltInWidgets.kNumberBar);
-    controllerLayout.addNumber("right x", () -> ps4.getRightX())
+    controllerLayout.addNumber("right x", () -> xbox.getRightX())
     .withPosition(2, 1).withSize(2, 1).withWidget(BuiltInWidgets.kNumberBar);
-    controllerLayout.addNumber("right trigger", () -> ps4.getR2Axis())
+    controllerLayout.addNumber("right trigger", () -> xbox.getRightTriggerAxis())
     .withPosition(2, 2).withSize(2, 1).withWidget(BuiltInWidgets.kNumberBar);
   }
 
@@ -204,30 +208,59 @@ public class RobotContainer {
   private void configureBindings() {
     SmartDashboard.putData("Intake Auto", simpleAuto);
 
-    //button comands for arm
-    commandXbox.a().onTrue
-    (Commands.runOnce(
-      ()-> {
-        armSub.setGoal(2);
-        armSub.enable();
-      }, armSub));
+    //ampScoring.whileTrue( new ParallelCommandGroup( new AutoIntake(scoreSub), new AutoShoot(scoreSub) ) );
 
-      commandXbox.b().onTrue
-    (Commands.runOnce(
+    //shooter button
+    shooterOn.whileTrue
+    (Commands.run(
       ()-> {
-        armSub.setGoal(.5);
-        armSub.enable();
-      }, armSub));
+        scoreSub.shooterOn();
+      }, scoreSub));
 
-      commandXbox.y().onTrue(Commands.runOnce(armSub::disable));
+      //intake buttons
+    intakeFoward.whileTrue
+    (Commands.run(
+      ()-> {
+          scoreSub.intakeFoward();
+      }, scoreSub));
+
+    intakeBackward.whileTrue
+    (Commands.run(
+      ()-> {
+        scoreSub.intakeBackward();
+      }, scoreSub));
+
+    //climb buttons
+    /*
+    climbUp.whileTrue
+    (Commands.run(
+      ()-> {
+        climbSub.climbUp();
+      }, climbSub));
+
+    climbDown.whileTrue
+    (Commands.run(
+      ()-> {
+        climbSub.climbDown();
+      }, climbSub));
+
+    climbStop.onTrue
+    (Commands.run(
+      ()-> {
+        climbSub.climbStop();
+        scoreSub.moveArm(0);
+      }, climbSub, scoreSub));
+      */
   }
+
+    
 
   /**
    * Disables all ProfiledPIDSubsystem and PIDSubsystem instances. This should be called on robot
    * disable to prevent integral windup.
    */
   public void disablePIDSubsystems() {
-    armSub.disable();
+    //armSub.disable();
   }
   
   /**

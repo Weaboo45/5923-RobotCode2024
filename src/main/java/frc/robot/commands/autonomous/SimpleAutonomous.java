@@ -43,17 +43,46 @@ public class SimpleAutonomous extends Command {
 
   private void timedAutoSequence() {
     switch (phase){
-       case 1: //drive out
-       if(timer.get() < 5){
+      /* 
+       
+
+       */
+      case 1: //
+       if(timer.get() < 1.175){
+        subsystem.moveArm(-.375);
+       } else {
+        subsystem.moveArm(0);
+        phase++;
+       }
+       break; //end of case 1
+
+       case 2:  //index intake and fire
+       if(timer.get() > 1.175 && timer.get() < 3) {
+        subsystem.shooterOn();
+        if(timer.get() > 2.125){
+          subsystem.intakeFoward();
+        } 
+       } else {
+        subsystem.shooterOff();
+        subsystem.intakeOff();
+        phase++;
+       }
+       break; //end of case 2
+
+       case 3:  //drive out
+       if(timer.get() > 3 && timer.get() < 6){
         drivetrain.swerveDrive( new Translation2d(1, 0), 0, true, false);
        } else {
         drivetrain.swerveDrive( new Translation2d( 0, 0), 0, true, false);
         phase++;
        }
-       break;
+       break; //end of case 3
 
       default:
         drivetrain.swerveDrive( new Translation2d( 0, 0), 0, true, false);
+        //subsystem.shooterOff();
+        //subsystem.intakeOff();
+        //subsystem.moveArm(0);
     }
   }
 

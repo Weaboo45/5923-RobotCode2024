@@ -183,9 +183,12 @@ public final class Constants {
     public static final int leftArmMotorID = 11;
 
     //filler vals
-    public static final int [] kEncoderPorts = new int[] {0, 1};
+    public static final int kEncoderPort = 0;
 
-    public static final double kP = 1;
+    public static final double kP = 0.0;
+    public static final double kI = 0.0;
+    public static final double kD = 0.0;
+    public static final double kTolerance = 0.0;
 
     public static final int kEncoderPPR = 1025; // 975.6  ||try both
     public static final double kEncoderDistancePerPulse = ARM_MOTOR_PCONVERSION / kEncoderPPR;
@@ -199,6 +202,20 @@ public final class Constants {
     public static final double kMaxVelocityRadPerSecond = 2;
     public static final double kMaxAccelerationRadPerSecSquared = 3;
 
-    public static final double kArmOffsetRads = 0.5;
+    public static final double angleOffsetDegree = 0.0; //5.75
+    public static final double angleOffsetRadian = angleOffsetDegree * (Math.PI / 180);
+
+    public static final double kUpperLimit = 90.0;
+    public static final double kLowerLimit = 0.0;
+
+    //public static final double kArmOffsetRads = .1;
+    }
+
+    public static final class ClimberConstants{
+      public static final int rightClimberID = 15;
+      public static final int leftClimberID = 16;
+
+      public static final int rightCLimberServoID = 1;
+      public static final int leftClimberServoID = 9;
     }
 }

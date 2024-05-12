@@ -49,18 +49,18 @@ public class ScoreAmp extends Command {
 
        case 2: // shoot note
        if(timer.get() < 4){
-        subsystem.shooter(.1);
+        subsystem.shooterOn();
         if(timer.get() < 3){
           subsystem.intake(1);
         }
        } else {
-        subsystem.shooter(0);
+        subsystem.shooterOff();
         subsystem.intake(0);
         phase++;
        }
         break;
       default:
-        subsystem.shooter(0);
+        subsystem.shooterOff();
         subsystem.intake(0);
     }
   }

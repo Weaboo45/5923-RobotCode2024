@@ -46,9 +46,9 @@ public class ArmCommand extends Command{
     }
 
     if(shooterButton.get()){
-        subsystem.shooter(-.5);
+        subsystem.shooterOn();
     } else {
-      subsystem.shooter(0);
+      subsystem.shooterOff();
     }
   }
 

@@ -13,7 +13,7 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
   private final PWMSparkMax rightArmMotor = new PWMSparkMax(ArmConstants.rightArmMotorID);
   private final PWMSparkMax leftArmMotor = new PWMSparkMax(ArmConstants.leftArmMotorID);
 
-  private final Encoder absoluteEncoder = new Encoder(ArmConstants.kEncoderPorts[0], ArmConstants.kEncoderPorts[1]);
+  private final Encoder absoluteEncoder = new Encoder(2, 3);
   private final ArmFeedforward m_feedforward =
       new ArmFeedforward(
           ArmConstants.kSVolts, ArmConstants.kGVolts,
@@ -32,7 +32,7 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
         0);
     absoluteEncoder.setDistancePerPulse(ArmConstants.kEncoderDistancePerPulse);
     // Start arm at rest in neutral position
-    setGoal(ArmConstants.kArmOffsetRads);
+    setGoal(ArmConstants.angleOffsetDegree);
 
     leftArmMotor.setInverted(true);
   }
@@ -48,6 +48,6 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
 
   @Override
   public double getMeasurement() {
-    return absoluteEncoder.getDistance() + ArmConstants.kArmOffsetRads;
+    return absoluteEncoder.getDistance() + ArmConstants.angleOffsetDegree;
   }
 }

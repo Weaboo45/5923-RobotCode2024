@@ -12,6 +12,7 @@ import java.util.function.Supplier;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.subsystems.SwerveDrivetrain;
@@ -55,6 +56,11 @@ public class DriveSwerve extends Command {
 
     if(resetGyro.get()){
       drivetrain.zeroHeading();
+    }
+
+    SmartDashboard.putBoolean("Field Drive", fieldDrive);
+    if(fieldTOrientated.get()){
+      fieldDrive = !fieldDrive;
     }
 
     /* Get Values, Deadband */

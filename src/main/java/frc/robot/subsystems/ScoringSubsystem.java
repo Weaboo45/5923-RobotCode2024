@@ -2,15 +2,18 @@ package frc.robot.subsystems;
 import frc.robot.Constants;
 import frc.robot.Constants.ArmConstants;
 
-import com.ctre.phoenix6.configs.CANcoderConfiguration;
-import com.ctre.phoenix6.hardware.CANcoder;
-import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
 import com.revrobotics.CANSparkMax;
-//import com.revrobotics.RelativeEncoder;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.SparkPIDController;
+import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
-import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.wpilibj.DutyCycleEncoder;
+
+import org.littletonrobotics.junction.AutoLogOutput;
 
 //import edu.wpi.first.math.geometry.Rotation2d;
 
@@ -25,7 +28,16 @@ public class ScoringSubsystem extends SubsystemBase {
     private CANSparkMax rightArmMotor;
 
     //arm CANcoder
-    private final Encoder absoluteEncoder = new Encoder(ArmConstants.kEncoderPorts[0], ArmConstants.kEncoderPorts[1]);
+    private final RelativeEncoder motorEncoder;
+    private final DutyCycleEncoder absoluteEncoder = new DutyCycleEncoder(ArmConstants.kEncoderPort);
+
+    //arm PID controller
+    private final SparkPIDController armPID;
+
+    //arm feed forward
+    private final ArmFeedforward feedforward = 
+    new ArmFeedforward(ArmConstants.kSVolts, ArmConstants.kGVolts, 
+    ArmConstants.kVVoltSecondPerRad, ArmConstants.kAVoltSecondSquaredPerRad);
 
     //shooter motors
     private CANSparkMax topShooterMotor;
@@ -38,11 +50,14 @@ public class ScoringSubsystem extends SubsystemBase {
       //arm motors
       leftArmMotor = new CANSparkMax(Constants.leftArmMotorID, MotorType.kBrushless);
       rightArmMotor = new CANSparkMax(Constants.rightArmMotorID, MotorType.kBrushless);
+
+      motorEncoder = rightArmMotor.getEncoder();
+      motorEncoder.setPositionConversionFactor(ArmConstants.ARM_MOTOR_PCONVERSION);
         
       //shooter motors
       topShooterMotor = new CANSparkMax(Constants.topShooterMotorID, MotorType.kBrushless);
       bottomShooterMotor = new CANSparkMax(Constants.bottomShooterMotorID, MotorType.kBrushless);
-        
+
       //intake motor
       intakeMotor = new CANSparkMax(Constants.intakeMotorID, MotorType.kBrushed);
 
@@ -52,9 +67,73 @@ public class ScoringSubsystem extends SubsystemBase {
       configBottorShooterMotor();
       configTopShooterMotor();
       configIntakeMotor();
+
+      //reset encoder
+      resetEncoder();
+      absoluteEncoder.setPositionOffset(ArmConstants.angleOffsetRadian);
+
+      armPID = rightArmMotor.getPIDController();
+      armPID.setFeedbackDevice(motorEncoder);
+
+      armPID.setP(ArmConstants.kP);
+      armPID.setI(ArmConstants.kI);
+      armPID.setD(ArmConstants.kD);
       
-      SmartDashboard.putNumber("Arm Encoder position", getAngle());
-      Logger.recordOutput("Arm Distance", getAngle());
+      SmartDashboard.putNumber("Arm Encoder angle", getRevEncoder());
+      SmartDashboard.putNumber("Arm distance traveled", getDistance());
+
+      SmartDashboard.putNumberArray("Arm Motor Temps", getTemp());
+      SmartDashboard.putNumberArray("Arm Motor Currents", getCurrent());
+  }
+
+  public void hold(TrapezoidProfile.State setpoint){
+    double ff = feedforward.calculate(setpoint.position*2*Math.PI, setpoint.velocity);
+    armPID.setReference(setpoint.position, ControlType.kPosition,0, ff);
+  }
+
+  public void runToPosition(TrapezoidProfile.State setpoint){
+    if(getPos() >= ArmConstants.kUpperLimit){
+      rightArmMotor.set(0);
+      leftArmMotor.set(0);
+    } else if(getPos() <= ArmConstants.kLowerLimit){
+      rightArmMotor.set(0);
+      leftArmMotor.set(0);
+    } else{
+      double ff = feedforward.calculate(setpoint.position*2*Math.PI, setpoint.position);
+      armPID.setReference(setpoint.position, ControlType.kPosition,0, ff);
+    }
+  }
+
+  public double getPos(){
+    return absoluteEncoder.getAbsolutePosition();
+  }
+
+  public double[] getTemp(){
+    double[] result = {rightArmMotor.getMotorTemperature(), leftArmMotor.getMotorTemperature()};
+    return result;
+  }
+
+  public double[] getCurrent(){
+    double[] result = {rightArmMotor.getOutputCurrent(), leftArmMotor.getOutputCurrent()};
+    return result;
+  }
+
+  public boolean isInTolarance(double input, double target, double tolerance){
+    double upLim = target + tolerance;
+    double downLim = target - tolerance;
+
+    if(downLim <= input && input <= upLim){
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  @Override
+  public void periodic() {
+    getRevEncoder();
+    getDistance();
+    Logger.recordOutput("Arm Distance", getRevEncoder());
   }
 
   private void configRightArmMotor() {
@@ -97,10 +176,23 @@ public class ScoringSubsystem extends SubsystemBase {
     intakeMotor.burnFlash();
   }
 
-  public double getAngle(){
-    return (absoluteEncoder.getDistance() + ArmConstants.kArmOffsetRads) / (ArmConstants.ARM_DIAMETER / 2.0);
+  public void resetEncoder(){
+    absoluteEncoder.reset();
+    double absolutePosition = getRevEncoder() - ArmConstants.angleOffsetRadian;
+    motorEncoder.setPosition(absolutePosition);
   }
 
+  @AutoLogOutput
+  public double getRevEncoder(){
+    return absoluteEncoder.getDistance() / (ArmConstants.ARM_DIAMETER / 2.0) * 100.0;
+  }
+
+  @AutoLogOutput
+  public double getDistance(){
+    return Math.abs(absoluteEncoder.getAbsolutePosition() - absoluteEncoder.getPositionOffset());
+  }
+
+  @AutoLogOutput
   public void moveArm(double pivotSpeed){
     rightArmMotor.set(pivotSpeed * -2.0);
     leftArmMotor.set(pivotSpeed * 2.0);
@@ -110,8 +202,30 @@ public class ScoringSubsystem extends SubsystemBase {
     intakeMotor.set(intakeSpeed * 2);
   }
 
-  public void shooter(double shooterSpeed){
-    topShooterMotor.set(shooterSpeed);
-    bottomShooterMotor.set(shooterSpeed);
+  public void intakeFoward(){
+    intakeMotor.set(1.0);
+  }
+
+  public void intakeBackward(){
+    intakeMotor.set(-1.0);
+  }
+
+  public void intakeOff(){
+    intakeMotor.set(0.0);
+  }
+
+  public void shooterOn(){
+    topShooterMotor.set(-.75);
+    bottomShooterMotor.set(-.75);
+  }
+
+  public void shooterOff(){
+    topShooterMotor.set(0.0);
+    bottomShooterMotor.set(0.0);
+  }
+
+  public void shooter(double speed){
+    topShooterMotor.set(speed);
+    bottomShooterMotor.set(speed);
   }
 }
