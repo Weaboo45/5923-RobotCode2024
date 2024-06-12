@@ -177,14 +177,13 @@ public class ScoringSubsystem extends SubsystemBase {
   }
 
   public void resetEncoder(){
-    absoluteEncoder.reset();
     double absolutePosition = getRevEncoder() - ArmConstants.angleOffsetRadian;
     motorEncoder.setPosition(absolutePosition);
   }
 
   @AutoLogOutput
   public double getRevEncoder(){
-    return absoluteEncoder.getDistance() / (ArmConstants.ARM_DIAMETER / 2.0) * 100.0;
+    return absoluteEncoder.getDistance() * 360; // / (ArmConstants.ARM_DIAMETER / 2.0) * 100.0;
   }
 
   @AutoLogOutput

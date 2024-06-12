@@ -169,7 +169,5 @@ public class SwerveModules extends SubsystemBase {
   public SwerveModuleState getState(){
     double velocity = driveEncoder.getVelocity();
     return new SwerveModuleState(velocity, getAngle());  
-  }
-
-  
+  }  
 }
