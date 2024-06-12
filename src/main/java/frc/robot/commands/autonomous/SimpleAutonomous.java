@@ -44,9 +44,8 @@ public class SimpleAutonomous extends Command {
   private void timedAutoSequence() {
     switch (phase){
       /* 
-       
-
        */
+
       case 1: //
        if(timer.get() < 1.175){
         subsystem.moveArm(-.375);
