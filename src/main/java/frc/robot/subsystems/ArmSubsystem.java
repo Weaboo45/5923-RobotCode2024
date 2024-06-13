@@ -24,8 +24,8 @@ public class ArmSubsystem extends ProfiledPIDSubsystem {
     super(
         new ProfiledPIDController(
             ArmConstants.kP,
-            0,
-            0,
+            ArmConstants.kI,
+            ArmConstants.kD,
             new TrapezoidProfile.Constraints(
                 ArmConstants.kMaxVelocityRadPerSecond,
                 ArmConstants.kMaxAccelerationRadPerSecSquared)),
