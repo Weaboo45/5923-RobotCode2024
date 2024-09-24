@@ -140,7 +140,7 @@ public class SwerveModules extends SubsystemBase {
     turnPIDController.setFF(0.0);
     turnMotor.enableVoltageCompensation(12);
     turnMotor.burnFlash();
-    resetToAbsolute();
+    //resetToAbsolute();
   }
 
   private void configDriveMotor() {

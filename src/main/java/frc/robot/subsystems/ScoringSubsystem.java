@@ -4,18 +4,13 @@ import frc.robot.Constants.ArmConstants;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.SparkPIDController;
-import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
-import edu.wpi.first.math.controller.ArmFeedforward;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 
 import org.littletonrobotics.junction.AutoLogOutput;
-
-//import edu.wpi.first.math.geometry.Rotation2d;
 
 import org.littletonrobotics.junction.Logger;
 
@@ -31,13 +26,9 @@ public class ScoringSubsystem extends SubsystemBase {
     private final RelativeEncoder motorEncoder;
     private final DutyCycleEncoder absoluteEncoder = new DutyCycleEncoder(ArmConstants.kEncoderPort);
 
-    //arm PID controller
-    private final SparkPIDController armPID;
-
-    //arm feed forward
-    private final ArmFeedforward feedforward = 
-    new ArmFeedforward(ArmConstants.kSVolts, ArmConstants.kGVolts, 
-    ArmConstants.kVVoltSecondPerRad, ArmConstants.kAVoltSecondSquaredPerRad);
+    //limit switches
+    //public DigitalInput zeroSwitch = new DigitalInput(1);
+    //public DigitalInput ninetySwitch = new DigitalInput(9);
 
     //shooter motors
     private CANSparkMax topShooterMotor;
@@ -71,38 +62,7 @@ public class ScoringSubsystem extends SubsystemBase {
       //reset encoder
       resetEncoder();
       absoluteEncoder.setPositionOffset(ArmConstants.angleOffsetRadian);
-
-      armPID = rightArmMotor.getPIDController();
-      armPID.setFeedbackDevice(motorEncoder);
-
-      armPID.setP(ArmConstants.kP);
-      armPID.setI(ArmConstants.kI);
-      armPID.setD(ArmConstants.kD);
-      
-      SmartDashboard.putNumber("Arm Encoder angle", getRevEncoder());
-      SmartDashboard.putNumber("Arm distance traveled", getDistance());
-
-      SmartDashboard.putNumberArray("Arm Motor Temps", getTemp());
-      SmartDashboard.putNumberArray("Arm Motor Currents", getCurrent());
-  }
-
-  public void hold(TrapezoidProfile.State setpoint){
-    double ff = feedforward.calculate(setpoint.position*2*Math.PI, setpoint.velocity);
-    armPID.setReference(setpoint.position, ControlType.kPosition,0, ff);
-  }
-
-  public void runToPosition(TrapezoidProfile.State setpoint){
-    if(getPos() >= ArmConstants.kUpperLimit){
-      rightArmMotor.set(0);
-      leftArmMotor.set(0);
-    } else if(getPos() <= ArmConstants.kLowerLimit){
-      rightArmMotor.set(0);
-      leftArmMotor.set(0);
-    } else{
-      double ff = feedforward.calculate(setpoint.position*2*Math.PI, setpoint.position);
-      armPID.setReference(setpoint.position, ControlType.kPosition,0, ff);
     }
-  }
 
   public double getPos(){
     return absoluteEncoder.getAbsolutePosition();
@@ -118,21 +78,20 @@ public class ScoringSubsystem extends SubsystemBase {
     return result;
   }
 
-  public boolean isInTolarance(double input, double target, double tolerance){
-    double upLim = target + tolerance;
-    double downLim = target - tolerance;
-
-    if(downLim <= input && input <= upLim){
-      return true;
-    } else {
-      return false;
-    }
-  }
-
   @Override
   public void periodic() {
     getRevEncoder();
     getDistance();
+
+    SmartDashboard.putNumber("Arm Encoder angle", getRevEncoder());
+    SmartDashboard.putNumber("Arm distance traveled", getDistance());
+
+    SmartDashboard.putNumberArray("Arm Motor Temps", getTemp());
+    SmartDashboard.putNumberArray("Arm Motor Currents", getCurrent());
+
+    //SmartDashboard.putBoolean("Home Switch", zeroSwitch.get());
+    //SmartDashboard.putBoolean("90 Switch", ninetySwitch.get());
+
     Logger.recordOutput("Arm Distance", getRevEncoder());
   }
 

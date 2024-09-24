@@ -7,11 +7,11 @@
 
 package frc.robot;
 
-import org.littletonrobotics.junction.LogFileUtil;
+//import org.littletonrobotics.junction.LogFileUtil;
+//import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
-import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 //import org.opencv.core.Mat;
 //import org.opencv.core.Point;
@@ -107,7 +107,6 @@ public class Robot extends LoggedRobot {
       case REAL:
         // Running on a real robot, log to a USB stick
         Logger.addDataReceiver(new WPILOGWriter("/U"));
-        //Logger.addDataReceiver(new WPILOGWriter("C:/Users/ynots/Documents/WPILogs2024"));
         Logger.addDataReceiver(new NT4Publisher());
         break;
 
@@ -116,6 +115,7 @@ public class Robot extends LoggedRobot {
         Logger.addDataReceiver(new NT4Publisher());
         break;
 
+      /* 
       case REPLAY:
         // Replaying a log, set up replay source
         setUseTiming(false); // Run as fast as possible
@@ -123,6 +123,7 @@ public class Robot extends LoggedRobot {
         Logger.setReplaySource(new WPILOGReader(logPath));
         Logger.addDataReceiver(new WPILOGWriter(LogFileUtil.addPathSuffix(logPath, "_sim")));
         break;
+        */
     }
 
     // See http://bit.ly/3YIzFZ6 for more information on timestamps in AdvantageKit.

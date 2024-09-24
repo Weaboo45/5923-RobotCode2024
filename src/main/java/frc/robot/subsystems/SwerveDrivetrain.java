@@ -34,6 +34,8 @@ public class SwerveDrivetrain extends SubsystemBase {
   private SwerveDrivePoseEstimator poseEstimator;
   private Field2d field;
 
+  private boolean lowSpeed;
+
   /*
   private static SwerveDrivetrain drivetrain = new SwerveDrivetrain();
 
@@ -169,10 +171,16 @@ public class SwerveDrivetrain extends SubsystemBase {
         : Rotation2d.fromDegrees(gyro.getYaw()% 360);
   }
 
+  public void lowGear(boolean val){
+    lowSpeed = val;
+  }
+
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
     //poseEstimator.update(getHeadingRotation2d(), getPositions());
+
+    SmartDashboard.putBoolean("Low Gear Enabled", lowSpeed);
 
     Rotation2d yawValue = getYaw();
     double rawYawValue = gyro.getAngle();

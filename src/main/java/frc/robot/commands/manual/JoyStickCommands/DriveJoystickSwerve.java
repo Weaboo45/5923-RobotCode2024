@@ -62,7 +62,7 @@ public class DriveJoystickSwerve extends Command {
     double strafeVal = strafeLimiter
         .calculate(MathUtil.applyDeadband(x.get(), Constants.STRAFING_DEADBAND));
     double rotationVal = rotationLimiter
-        .calculate(MathUtil.applyDeadband(z.get(), Constants.ROTATION_DEADBAND));
+        .calculate(MathUtil.applyDeadband(-z.get(), Constants.ROTATION_DEADBAND));
 
     if(fieldTOrientated.get()){
       fieldDrive = !fieldDrive;

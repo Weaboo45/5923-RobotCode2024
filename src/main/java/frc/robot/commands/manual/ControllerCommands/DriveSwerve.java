@@ -25,9 +25,9 @@ public class DriveSwerve extends Command {
 
   private SwerveDrivetrain drivetrain;
   private Supplier<Double>  y, x, z;
-  private Supplier<Boolean> fieldTOrientated, resetGyro;
-  boolean fieldDrive = true, onOff = false;
-  double speed = 3.5;
+  private Supplier<Boolean> fieldTOrientated, resetGyro, toggleSpeed;
+  boolean fieldDrive = true, onOff = false, lowSpeed = true;
+  double speedMult;
 
   private SlewRateLimiter translationLimiter = new SlewRateLimiter(2.0);
   private SlewRateLimiter strafeLimiter = new SlewRateLimiter(2.0);
@@ -35,7 +35,7 @@ public class DriveSwerve extends Command {
 
 
   public DriveSwerve(SwerveDrivetrain drivetrain, Supplier<Double> yDirect, Supplier<Double> xDirect, 
-  Supplier<Double> rotation, Supplier<Boolean> fieldTOrientated, Supplier<Boolean> resetGyro) {
+  Supplier<Double> rotation, Supplier<Boolean> fieldTOrientated, Supplier<Boolean> resetGyro, Supplier<Boolean> toggleSpeed) {
     addRequirements(drivetrain);
     this.drivetrain = drivetrain;
     this.y = yDirect;
@@ -43,6 +43,7 @@ public class DriveSwerve extends Command {
     this.z = rotation;
     this.resetGyro = resetGyro;
     this.fieldTOrientated = fieldTOrientated; // toggle
+    this.toggleSpeed = toggleSpeed;
   }
 
 // Called when the command is initially scheduled.
@@ -63,6 +64,16 @@ public class DriveSwerve extends Command {
       fieldDrive = !fieldDrive;
     }
 
+    if(toggleSpeed.get()){
+      lowSpeed = !lowSpeed;
+      drivetrain.lowGear(lowSpeed);
+    }
+    if(lowSpeed){
+      speedMult = 2;
+    } else{
+      speedMult = 3;
+    }
+
     /* Get Values, Deadband */
     double translationVal = translationLimiter
         .calculate(MathUtil.applyDeadband(y.get(), Constants.SPEED_DEADBAND));
@@ -71,8 +82,8 @@ public class DriveSwerve extends Command {
     double rotationVal = rotationLimiter
         .calculate(MathUtil.applyDeadband(z.get(), Constants.ROTATION_DEADBAND));
 
-    drivetrain.swerveDrive( new Translation2d(translationVal * 3, strafeVal * 3),
-      rotationVal * 4, fieldDrive, false);
+    drivetrain.swerveDrive( new Translation2d(translationVal * speedMult, strafeVal * speedMult), //3
+      rotationVal * speedMult, fieldDrive, false); //4
   }
 
   // Called once the command ends or is interrupted.

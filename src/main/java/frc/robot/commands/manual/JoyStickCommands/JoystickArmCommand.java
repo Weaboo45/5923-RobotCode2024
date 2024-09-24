@@ -2,6 +2,7 @@ package frc.robot.commands.manual.JoyStickCommands;
 
 import java.util.function.Supplier;
 
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.ClimberSubsystem;
 import frc.robot.subsystems.ScoringSubsystem;
@@ -10,6 +11,9 @@ public class JoystickArmCommand extends Command{
     private ScoringSubsystem subsystem;
     private ClimberSubsystem climbSub;
     private Supplier<Boolean> intakeButtonForward, armUp, armDown, climbUp, climbDown;
+
+    //private final DigitalInput zeroSwitch = new DigitalInput(1), ninetySwitch = new DigitalInput(9);
+
 
     public JoystickArmCommand(ScoringSubsystem subsystem, ClimberSubsystem climbSub,
      Supplier<Boolean> intakeButtonForward,
@@ -45,12 +49,15 @@ public class JoystickArmCommand extends Command{
         subsystem.shooter(0.0);
     }
 
-    if(armUp.get()){
+    
+    if(armUp.get() ){     //&& ninetySwitch.get()
       subsystem.moveArm(.3);
     }
-    if(armDown.get()){
+    if(armDown.get() ){   //&& zeroSwitch.get()
       subsystem.moveArm(-.375);
     }
+  
+
     if(armUp.get() == false && armDown.get() == false){
       subsystem.moveArm(0);
     }
